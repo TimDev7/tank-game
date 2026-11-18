@@ -49,7 +49,7 @@ var _cooldown_left: float = 0.0
 
 func _ready() -> void:
 	collision_layer = 1 << (PhysicsLayers.TANK - 1)
-	collision_mask = (1 << (PhysicsLayers.WALL - 1)) | (1 << (PhysicsLayers.TANK - 1))
+	collision_mask = (1 << (PhysicsLayers.WALL - 1)) | (1 << (PhysicsLayers.TANK - 1)) | (1 << (PhysicsLayers.CRATE - 1))
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
 	_apply_skin()
 
@@ -65,11 +65,26 @@ func _physics_process(delta: float) -> void:
 	var throttle: float = cmd.throttle
 	var speed := move_speed * (reverse_speed_factor if throttle < 0.0 else 1.0)
 	velocity = Vector2.RIGHT.rotated(rotation) * throttle * speed
+	var intended := velocity
 	move_and_slide()
+	_push_crates(intended)
 
 	if cmd.fire and _cooldown_left <= 0.0:
 		_cooldown_left = fire_cooldown
 		fired.emit(self, _muzzle.global_position, Vector2.RIGHT.rotated(_turret.global_rotation))
+
+
+## Ящик, в который упёрлись, едет в сторону давления (составляющая скорости в ящик); вдоль грани танк скользит.
+func _push_crates(intended: Vector2) -> void:
+	for i in get_slide_collision_count():
+		var hit := get_slide_collision(i)
+		var crate := hit.get_collider() as Crate
+		if crate == null:
+			continue
+		var into := -hit.get_normal()
+		var speed := intended.dot(into)
+		if speed > 1.0:
+			crate.push(into * speed)
 
 
 ## Команда кадра: turn (-1..1, + вправо), throttle (-1..1, + вперёд), fire.

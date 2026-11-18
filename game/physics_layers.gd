@@ -11,3 +11,4 @@ extends RefCounted
 const WALL := 1
 const TANK := 2
 const BULLET := 3
+const CRATE := 4

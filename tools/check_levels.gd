@@ -60,6 +60,19 @@ func _init() -> void:
 		_check(path.size() >= 5 and in_wall == 0 and length < 3200.0,
 			"[%d %s] путь ИИ между спавнами: %d точек, %.0f px, в стенах %d" % [i + 1, name, path.size(), length, in_wall])
 
+		# ящики: в свободных клетках, не в зонах спавна, без дублей, минимум 8
+		var crate_ok := true
+		var seen := {}
+		var crate_list := Levels.crates(i)
+		for cr in crate_list:
+			var cell := Vector2i(cr.x, cr.y)
+			var in_spawn_zone := cr.y >= 7 and cr.y <= 10 and (cr.x <= 4 or cr.x >= Levels.COLS - 5)
+			if set.has(cell) or in_spawn_zone or seen.has(cell):
+				crate_ok = false
+				print("     плохой ящик в клетке ", cell)
+			seen[cell] = true
+		_check(crate_ok and crate_list.size() >= 8, "[%d %s] ящики: %d, все в свободных клетках вне зон спавна" % [i + 1, name, crate_list.size()])
+
 		var free := 0
 		for x in range(1, Levels.COLS - 1):
 			for y in range(1, Levels.ROWS - 1):

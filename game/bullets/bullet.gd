@@ -34,7 +34,7 @@ func _physics_process(delta: float) -> void:
 
 	var remaining := SPEED * delta
 	var space := get_world_2d().direct_space_state
-	var mask := (1 << (PhysicsLayers.WALL - 1)) | (1 << (PhysicsLayers.TANK - 1))
+	var mask := (1 << (PhysicsLayers.WALL - 1)) | (1 << (PhysicsLayers.TANK - 1)) | (1 << (PhysicsLayers.CRATE - 1))
 	for _i in MAX_STEPS_PER_FRAME:
 		var query := PhysicsRayQueryParameters2D.create(global_position, global_position + direction * remaining, mask)
 		var hit := space.intersect_ray(query)
@@ -44,6 +44,10 @@ func _physics_process(delta: float) -> void:
 		var collider: Object = hit.collider
 		if collider is Tank:
 			(collider as Tank).die()
+			queue_free()
+			return
+		if collider is Crate:  # пуля разбивает ящик и исчезает вместе с ним
+			(collider as Crate).destroy()
 			queue_free()
 			return
 		# стена: отражаем и продолжаем с остатком пути

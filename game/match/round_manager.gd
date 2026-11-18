@@ -170,13 +170,15 @@ func _on_tank_fired(tank: Tank, muzzle_position: Vector2, direction: Vector2) ->
 		return
 	# Если дуло внутри стены/танка (упёрлись носом) — решаем выстрел в упор лучом от центра танка.
 	var space := arena.get_world_2d().direct_space_state
-	var mask := (1 << (PhysicsLayers.WALL - 1)) | (1 << (PhysicsLayers.TANK - 1))
+	var mask := (1 << (PhysicsLayers.WALL - 1)) | (1 << (PhysicsLayers.TANK - 1)) | (1 << (PhysicsLayers.CRATE - 1))
 	var query := PhysicsRayQueryParameters2D.create(tank.global_position, muzzle_position, mask)
 	query.exclude = [tank.get_rid()]
 	var hit := space.intersect_ray(query)
 	if not hit.is_empty():
 		if hit.collider is Tank:
 			(hit.collider as Tank).die()
+		elif hit.collider is Crate:
+			(hit.collider as Crate).destroy()
 		return
 	var bullet := Bullet.new()
 	bullets_root.add_child(bullet)
