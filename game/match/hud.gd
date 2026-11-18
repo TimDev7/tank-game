@@ -9,6 +9,7 @@ const RED := Color(1.0, 0.45, 0.4)
 var _blue_label: Label
 var _red_label: Label
 var _message: Label
+var _hint: Label
 var _pause_overlay: Control
 
 
@@ -26,6 +27,10 @@ func set_scores(blue: int, red: int) -> void:
 func show_message(text: String) -> void:
 	_message.text = text
 	_message.visible = not text.is_empty()
+
+
+func set_hint(text: String) -> void:
+	_hint.text = text
 
 
 func show_pause(on: bool) -> void:
@@ -63,13 +68,13 @@ func _build() -> void:
 	root.add_child(_message)
 
 	# подсказка снизу (внутри рамки арены, нижняя стена 40 px)
-	var hint := _make_label(16, Color(0.8, 0.8, 0.8, 0.9))
-	hint.text = tr("Blue: WASD + Space   |   Red: Arrows + Enter   |   P - pause   |   R - restart round")
-	hint.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
-	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hint.offset_top = -34.0
-	hint.offset_bottom = -8.0
-	root.add_child(hint)
+	_hint = _make_label(16, Color(0.8, 0.8, 0.8, 0.9))
+	_hint.text = tr("Blue: WASD + Space   |   Red: Arrows + Enter   |   P - pause   |   R - restart round")
+	_hint.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_hint.offset_top = -34.0
+	_hint.offset_bottom = -8.0
+	root.add_child(_hint)
 
 	# пауза
 	_pause_overlay = ColorRect.new()

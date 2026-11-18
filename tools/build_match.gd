@@ -1,13 +1,30 @@
 extends SceneTree
-## Собирает game/match/match.tscn (играбельная сцена: арена + танки + раунды + HUD)
-## и tools/match_selftest.tscn (автотест). Редактор ДОЛЖЕН быть закрыт (CLAUDE.md).
+## Собирает играбельные сцены матча и автотесты. Редактор ДОЛЖЕН быть закрыт (CLAUDE.md).
 ##   Godot_console.exe --headless --path . --script res://tools/build_match.gd
+## Результат:
+##   game/match/match.tscn      — PvP на одном устройстве
+##   game/match/match_ai.tscn   — игрок против компьютера (красный — ИИ)
+##   tools/match_selftest.tscn, tools/ai_selftest.tscn — автотесты (запускаются как обычная сцена)
 
-const MATCH_PATH := "res://game/match/match.tscn"
-const SELFTEST_PATH := "res://tools/match_selftest.tscn"
+const OUTPUTS := {
+	"res://game/match/match.tscn": false,
+	"res://game/match/match_ai.tscn": true,
+}
 
 
 func _init() -> void:
+	var ok := true
+	for path in OUTPUTS:
+		ok = _save(_build_match(OUTPUTS[path]), path) and ok
+	for pair in [["MatchSelftest", "match_selftest"], ["AiSelftest", "ai_selftest"]]:
+		var test := Node.new()
+		test.name = pair[0]
+		test.set_script(load("res://tools/%s.gd" % pair[1]))
+		ok = _save(test, "res://tools/%s.tscn" % pair[1]) and ok
+	quit(0 if ok else 1)
+
+
+func _build_match(vs_ai: bool) -> Node:
 	var root := Node2D.new()
 	root.name = "Match"
 
@@ -34,14 +51,8 @@ func _init() -> void:
 	manager.arena = arena
 	manager.bullets_root = bullets
 	manager.hud = hud
-
-	var ok := _save(root, MATCH_PATH)
-
-	var test := Node.new()
-	test.name = "MatchSelftest"
-	test.set_script(load("res://tools/match_selftest.gd"))
-	ok = _save(test, SELFTEST_PATH) and ok
-	quit(0 if ok else 1)
+	manager.vs_ai = vs_ai
+	return root
 
 
 func _save(node: Node, path: String) -> bool:

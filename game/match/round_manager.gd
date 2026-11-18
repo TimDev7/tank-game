@@ -23,6 +23,8 @@ const PLAYER_NAMES := {1: "Blue", 2: "Red"}
 @export var arena: Arena
 @export var bullets_root: Node2D
 @export var hud: Hud
+## Красным (игрок 2) управляет компьютер. Включается и из главного меню через MatchConfig.vs_ai.
+@export var vs_ai: bool = false
 
 var state: State = State.ROUND_OVER
 var scores: Dictionary = {1: 0, 2: 0}
@@ -44,6 +46,12 @@ func _ready() -> void:
 		tank.fired.connect(_on_tank_fired)
 		tank.died.connect(_on_tank_died)
 		tanks[player] = tank
+	if vs_ai or MatchConfig.vs_ai:
+		var brain := TankBrain.new()
+		brain.setup(arena, tanks[1], bullets_root)
+		(tanks[2] as Tank).brain = brain
+		vs_ai = true
+	_apply_hint.call_deferred()
 	# Hud — следующий сосед в сцене и строит UI в своём _ready, который идёт после нашего.
 	start_match.call_deferred()
 
@@ -156,6 +164,15 @@ func _resolve_round() -> void:
 	await get_tree().create_timer(ROUND_END_DELAY).timeout
 	if id == _round_id and state == State.ROUND_OVER:  # не перезапускали вручную за это время
 		start_round()
+
+
+func _apply_hint() -> void:
+	if hud == null:
+		return
+	if vs_ai:
+		hud.set_hint(tr("Blue (you): WASD + Space   |   Red: computer   |   P - pause   |   R - restart round"))
+	else:
+		hud.set_hint(tr("Blue: WASD + Space   |   Red: Arrows + Enter   |   P - pause   |   R - restart round"))
 
 
 func _emit_scores() -> void:

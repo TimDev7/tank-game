@@ -37,6 +37,7 @@ const TURRET_TEXTURES := {
 
 var alive: bool = true
 var controls_enabled: bool = true
+var brain: TankBrain  ## null — управляет человек (TankInput); иначе ИИ
 
 var _cooldown_left: float = 0.0
 
@@ -59,16 +60,28 @@ func _physics_process(delta: float) -> void:
 		velocity = Vector2.ZERO
 		return
 
-	var input := TankInput.move_vector(player_index)  # x: поворот, y: -1 вперёд / +1 назад
-	rotation += input.x * turn_speed * delta
-	var throttle := -input.y
+	var cmd := _read_command(delta)
+	rotation += float(cmd.turn) * turn_speed * delta
+	var throttle: float = cmd.throttle
 	var speed := move_speed * (reverse_speed_factor if throttle < 0.0 else 1.0)
 	velocity = Vector2.RIGHT.rotated(rotation) * throttle * speed
 	move_and_slide()
 
-	if Input.is_action_pressed(TankInput.action(player_index, "fire")) and _cooldown_left <= 0.0:
+	if cmd.fire and _cooldown_left <= 0.0:
 		_cooldown_left = fire_cooldown
 		fired.emit(self, _muzzle.global_position, Vector2.RIGHT.rotated(_turret.global_rotation))
+
+
+## Команда кадра: turn (-1..1, + вправо), throttle (-1..1, + вперёд), fire.
+func _read_command(delta: float) -> Dictionary:
+	if brain != null:
+		return brain.think(self, delta)
+	var input := TankInput.move_vector(player_index)  # x: поворот, y: -1 вперёд / +1 назад
+	return {
+		"turn": input.x,
+		"throttle": -input.y,
+		"fire": Input.is_action_pressed(TankInput.action(player_index, "fire")),
+	}
 
 
 func die() -> void:
@@ -88,6 +101,8 @@ func respawn(at: Transform2D) -> void:
 	visible = true
 	_cooldown_left = 0.0
 	_body.set_deferred("disabled", false)
+	if brain != null:
+		brain.reset()
 
 
 func _apply_skin() -> void:
