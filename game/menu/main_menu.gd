@@ -12,6 +12,7 @@ signal start_requested(vs_ai: bool, level: int)
 
 const MATCH_SCENE := "res://game/match/match.tscn"
 const JUICY := preload("res://template/ui/components/juicy_button_component.tscn")
+const THUMB := preload("res://game/menu/level_thumb.gd")
 const HULLS := {
 	1: preload("res://game/tanks/art/tank_blue_hull.png"),
 	2: preload("res://game/tanks/art/tank_red_hull.png"),
@@ -221,8 +222,8 @@ func _level_button(index: int) -> Button:
 	box.add_theme_constant_override("separation", 4)
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(_label(str(index + 1), 40, Color.WHITE))
-	var thumb := LevelThumb.new()
-	thumb.level_index = index
+	var thumb: Control = THUMB.new()
+	thumb.set("level_index", index)
 	thumb.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	box.add_child(thumb)
 	box.add_child(_label(tr(Levels.level_name(index)), 20, Color(0.85, 0.87, 0.85)))
