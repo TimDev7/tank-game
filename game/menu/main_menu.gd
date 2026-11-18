@@ -29,7 +29,7 @@ var _starting := false
 
 
 func _ready() -> void:
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_build()
 	play_ai_button.grab_focus()
 
@@ -47,49 +47,43 @@ func start(vs_ai: bool) -> void:
 func _build() -> void:
 	var bg := ColorRect.new()
 	bg.color = Color(0.11, 0.13, 0.11)
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
 
-	# рамка из тайлов арены не нужна — простой тёмный фон и два танка друг против друга
+	# два танка друг против друга по бокам (абсолютные позиции под 1280x720)
 	_add_tank(1, Vector2(210, 430), 0.0)
 	_add_tank(2, Vector2(1070, 430), PI)
 
-	var title := _label(game_title, 92, Color.WHITE)
-	title.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	title.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	title.offset_top = 90.0
-	add_child(title)
+	# вся вёрстка — одна вертикальная колонка по центру экрана
+	var column := VBoxContainer.new()
+	column.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	column.alignment = BoxContainer.ALIGNMENT_CENTER
+	column.add_theme_constant_override("separation", 14)
+	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(column)
 
-	var subtitle := _label(tr("Bank your shots off the walls"), 26, Color(0.75, 0.78, 0.75))
-	subtitle.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	subtitle.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	subtitle.offset_top = 205.0
-	add_child(subtitle)
-
-	var box := VBoxContainer.new()
-	box.set_anchors_preset(Control.PRESET_CENTER)
-	box.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	box.grow_vertical = Control.GROW_DIRECTION_BOTH
-	box.offset_top = 40.0
-	box.add_theme_constant_override("separation", 22)
-	add_child(box)
+	column.add_child(_label(game_title, 92, Color.WHITE))
+	column.add_child(_label(tr("Bank your shots off the walls"), 26, Color(0.75, 0.78, 0.75)))
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(0, 44)
+	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(spacer)
 
 	play_ai_button = _button(tr("PLAY VS COMPUTER"), BLUE)
 	play_ai_button.pressed.connect(start.bind(true))
-	box.add_child(play_ai_button)
+	column.add_child(play_ai_button)
 	play_pvp_button = _button(tr("2 PLAYERS"), RED)
 	play_pvp_button.pressed.connect(start.bind(false))
-	box.add_child(play_pvp_button)
+	column.add_child(play_pvp_button)
 
 	# фокус: вверх/вниз между кнопками, замыкаем по кругу
 	play_ai_button.focus_neighbor_top = play_pvp_button.get_path()
 	play_pvp_button.focus_neighbor_bottom = play_ai_button.get_path()
 
 	var hint := _label(tr("Blue: WASD + Space   |   Red: Arrows + Enter   |   P - pause"), 18, Color(0.7, 0.72, 0.7, 0.9))
-	hint.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	hint.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	hint.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	hint.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	hint.offset_top = -56.0
 	hint.offset_bottom = -26.0
 	add_child(hint)
 
@@ -126,6 +120,7 @@ func _button(text: String, accent: Color) -> Button:
 	var button := Button.new()
 	button.text = text
 	button.custom_minimum_size = Vector2(440, 76)
+	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	button.focus_mode = Control.FOCUS_ALL
 	button.add_theme_font_size_override("font_size", 32)
 	button.add_theme_color_override("font_color", Color.WHITE)
