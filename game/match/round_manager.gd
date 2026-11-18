@@ -35,6 +35,7 @@ var state: State = State.ROUND_OVER
 var scores: Dictionary = {1: 0, 2: 0}
 var tanks: Dictionary = {}  # int -> Tank
 
+var _fixed_level: bool = false  ## уровень выбран в меню — не менять между раундами
 var _round_id: int = 0
 var _resolve_queued: bool = false
 var _paused: bool = false
@@ -64,7 +65,8 @@ func _ready() -> void:
 func start_match() -> void:
 	scores = {1: 0, 2: 0}
 	_emit_scores()
-	level = randi() % Levels.count()
+	_fixed_level = MatchConfig.level >= 0
+	level = MatchConfig.level if _fixed_level else randi() % Levels.count()
 	start_round()
 
 
@@ -196,7 +198,7 @@ func _resolve_round() -> void:
 	var id := _round_id
 	await get_tree().create_timer(ROUND_END_DELAY).timeout
 	if id == _round_id and state == State.ROUND_OVER:  # не перезапускали вручную за это время
-		start_round(true)
+		start_round(not _fixed_level)
 
 
 func _apply_hint() -> void:
