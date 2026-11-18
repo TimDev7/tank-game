@@ -2,11 +2,11 @@
 
 Запуск:  python tools/draw_arena_art.py [--preview <папка>]   (нужен Pillow; Python 3.11)
 Выход в game/arena/art/:
-  tiles.png    200x120  — тайлы стен 40x40: столбец = тема (0..4), строка = вариант (0..2)
-  floor_N.png  80x80    — бесшовный пол темы N
+  tiles.png    320x120  — тайлы стен 40x40: столбец = тема (0..7), строка = вариант (0..2)
+  floor_N.png  80x80    — бесшовный пол темы N (0..7)
   decals.png   240x40   — 6 декалей 40x40 на прозрачном фоне
   crates.png   144x36   — 4 вида ящиков 36x36: 0 дерево, 1 металл, 2 армейский, 3 «опасность»
-Темы по индексу уровня: 0 Classic (бетон), 1 Pillars (песчаник), 2 Lanes (мох), 3 Fortress (сталь), 4 Zigzag (кирпич).
+Темы (индекс уровня % 8): 0 бетон, 1 песчаник, 2 мох/трава, 3 сталь, 4 кирпич, 5 лёд, 6 лава, 7 неон.
 """
 import math
 import os
@@ -153,7 +153,75 @@ def wall_brick(v):
     return bevel(img, 50, 100)
 
 
-WALLS = [wall_concrete, wall_sandstone, wall_mossy, wall_steel, wall_brick]
+def wall_ice(v):
+    rnd = random.Random(600 + v)
+    img = Image.new("RGBA", (T, T), (146, 192, 222, 255))
+    d = ImageDraw.Draw(img, "RGBA")
+    d.polygon([(0, 0), (T, 0), (T * 0.62, T * 0.38), (0, T * 0.5)], fill=(190, 228, 246, 255))  # светлая грань
+    d.polygon([(T, T), (0, T), (T * 0.38, T * 0.62), (T, T * 0.5)], fill=(102, 150, 190, 255))  # тёмная грань
+    for _ in range(3 + v):  # трещины
+        x, y = rnd.randint(6, 34), rnd.randint(6, 34)
+        for _ in range(4):
+            nx, ny = x + rnd.randint(-6, 6), y + rnd.randint(-6, 6)
+            d.line([(x, y), (nx, ny)], fill=(236, 248, 255, 150), width=1)
+            x, y = nx, ny
+    for _ in range(5):  # блики
+        x, y = rnd.randint(3, 36), rnd.randint(3, 36)
+        d.line([(x - 2, y), (x + 2, y)], fill=(255, 255, 255, 220), width=1)
+        d.line([(x, y - 2), (x, y + 2)], fill=(255, 255, 255, 220), width=1)
+    speckle(img, rnd, 200, 10)
+    return bevel(img, 110, 90)
+
+
+def wall_lava(v):
+    rnd = random.Random(700 + v)
+    img = Image.new("RGBA", (T, T), (52, 40, 44, 255))
+    d = ImageDraw.Draw(img, "RGBA")
+    for gx in range(2):  # плиты базальта
+        for gy in range(2):
+            x0, y0 = gx * 20 + 1, gy * 20 + 1
+            col = jitter((66, 52, 56), 8, rnd)
+            d.polygon([(x0 + rnd.randint(0, 3), y0), (x0 + 18, y0 + rnd.randint(0, 3)),
+                       (x0 + 18 - rnd.randint(0, 3), y0 + 18), (x0, y0 + 18 - rnd.randint(0, 3))], fill=col + (255,))
+    glow = Image.new("RGBA", (T, T), (0, 0, 0, 0))
+    gd = ImageDraw.Draw(glow)
+    x, y = rnd.randint(0, 6), 20
+    for _ in range(9):  # светящаяся трещина
+        nx, ny = x + rnd.randint(2, 6), y + rnd.randint(-7, 7)
+        ny = max(2, min(T - 3, ny))
+        gd.line([(x, y), (nx, ny)], fill=(255, 120, 30, 255), width=2)
+        if rnd.random() < 0.35:
+            gd.line([(nx, ny), (nx + rnd.randint(-5, 5), ny + rnd.randint(4, 8))], fill=(255, 100, 20, 255), width=1)
+        x, y = nx, ny
+    img.alpha_composite(glow.filter(ImageFilter.GaussianBlur(2.2)))
+    img.alpha_composite(glow.point(lambda a: int(a * 0.85)))
+    speckle(img, rnd, 140, 8)
+    return bevel(img, 50, 110)
+
+
+def wall_neon(v):
+    rnd = random.Random(800 + v)
+    img = Image.new("RGBA", (T, T), (28, 24, 48, 255))
+    d = ImageDraw.Draw(img, "RGBA")
+    d.rectangle([5, 5, T - 6, T - 6], fill=(36, 30, 62, 255))
+    glow = Image.new("RGBA", (T, T), (0, 0, 0, 0))
+    gd = ImageDraw.Draw(glow)
+    cyan, magenta = (60, 230, 255, 255), (255, 60, 200, 255)
+    gd.rectangle([4, 4, T - 5, T - 5], outline=cyan, width=1)
+    gd.line([(4, 4), (13, 4)], fill=magenta, width=2)
+    gd.line([(T - 5, T - 5), (T - 14, T - 5)], fill=magenta, width=2)
+    if v == 1:
+        gd.line([(10, 20), (T - 11, 20)], fill=cyan, width=1)
+        gd.ellipse([T / 2 - 3, 17, T / 2 + 3, 23], outline=magenta, width=1)
+    if v == 2:
+        gd.line([(10, 10), (10, 28), (22, 28), (22, 16), (30, 16)], fill=cyan, width=1)
+    img.alpha_composite(glow.filter(ImageFilter.GaussianBlur(2.0)))
+    img.alpha_composite(glow)
+    speckle(img, rnd, 100, 6)
+    return bevel(img, 40, 120, 1)
+
+
+WALLS = [wall_concrete, wall_sandstone, wall_mossy, wall_steel, wall_brick, wall_ice, wall_lava, wall_neon]
 
 
 # --------------------------------------------------------------------------- полы (бесшовные)
@@ -254,7 +322,69 @@ def floor_dirt():
     return w.img
 
 
-FLOORS = [floor_concrete, floor_sand, floor_grass, floor_metal, floor_dirt]
+def _glow_wrap(layer, blur):
+    """Размытие бесшовного слоя: размываем 3x3 копии и берём центр."""
+    big = Image.new("RGBA", (F * 3, F * 3))
+    for ox in range(3):
+        for oy in range(3):
+            big.paste(layer, (ox * F, oy * F))
+    return big.filter(ImageFilter.GaussianBlur(blur)).crop((F, F, F * 2, F * 2))
+
+
+def floor_ice():
+    rnd = random.Random(6)
+    w = Wrap((100, 128, 156))
+    w.dots(rnd, 600, lambda r: r.randint(-10, 10))
+    for _ in range(8):  # трещины льда
+        x, y = rnd.randrange(F), rnd.randrange(F)
+        for _ in range(4):
+            nx, ny = x + rnd.randint(-9, 9), y + rnd.randint(-9, 9)
+            w.line(x, y, nx, ny, (190, 220, 240, 120), 1)
+            x, y = nx, ny
+    for _ in range(26):  # снежинки / блики
+        w.ellipse(rnd.randrange(F), rnd.randrange(F), 1, 1, (232, 244, 255, 230))
+    return w.img
+
+
+def floor_lava():
+    rnd = random.Random(7)
+    w = Wrap((38, 30, 32))
+    w.dots(rnd, 500, lambda r: r.randint(-8, 8))
+    glow = Image.new("RGBA", (F, F), (0, 0, 0, 0))
+    gd = ImageDraw.Draw(glow)
+    for _ in range(4):  # редкие тонкие светящиеся трещины (с переносом через края)
+        x, y = rnd.randrange(F), rnd.randrange(F)
+        for _ in range(4):
+            nx, ny = x + rnd.randint(-14, 14), y + rnd.randint(-14, 14)
+            for ox in (-F, 0, F):
+                for oy in (-F, 0, F):
+                    gd.line([(x + ox, y + oy), (nx + ox, ny + oy)], fill=(255, 110, 24, 255), width=1)
+            x, y = nx, ny
+    w.img.alpha_composite(_glow_wrap(glow, 1.8).point(lambda a: int(a * 0.55)))
+    w.img.alpha_composite(glow.point(lambda a: int(a * 0.7)))
+    for _ in range(10):  # угольки
+        w.ellipse(rnd.randrange(F), rnd.randrange(F), 1, 1, (255, 180, 70, 255))
+    return w.img
+
+
+def floor_neon():
+    rnd = random.Random(8)
+    w = Wrap((20, 17, 34))
+    w.dots(rnd, 260, lambda r: r.randint(-5, 5))
+    glow = Image.new("RGBA", (F, F), (0, 0, 0, 0))
+    gd = ImageDraw.Draw(glow)
+    for p in (0, 40):
+        gd.line([(p, 0), (p, F)], fill=(60, 220, 255, 255), width=1)
+        gd.line([(0, p), (F, p)], fill=(255, 70, 200, 255), width=1)
+    for x in (0, 40, 80):
+        for y in (0, 40, 80):
+            gd.ellipse([x - 2, y - 2, x + 2, y + 2], fill=(255, 255, 255, 255))
+    w.img.alpha_composite(_glow_wrap(glow, 2.0).point(lambda a: int(a * 0.55)))
+    w.img.alpha_composite(glow.point(lambda a: int(a * 0.45)))
+    return w.img
+
+
+FLOORS = [floor_concrete, floor_sand, floor_grass, floor_metal, floor_dirt, floor_ice, floor_lava, floor_neon]
 
 
 # --------------------------------------------------------------------------- декали (40x40, прозрачные)
@@ -418,7 +548,7 @@ CRATES = [crate_wood, crate_metal, crate_military, crate_hazard]
 
 def build():
     os.makedirs(OUT, exist_ok=True)
-    tiles = Image.new("RGBA", (T * 5, T * 3))
+    tiles = Image.new("RGBA", (T * len(WALLS), T * 3))
     for theme, fn in enumerate(WALLS):
         for v in range(3):
             tiles.paste(fn(v), (theme * T, v * T))
@@ -438,11 +568,11 @@ def build():
 
 def preview(path):
     """Контрольный лист: 5 тем (пол + стены + декали) и ящики."""
-    sheet = Image.new("RGBA", (5 * 260, 330), (16, 18, 16, 255))
+    sheet = Image.new("RGBA", (8 * 260, 330), (16, 18, 16, 255))
     tiles = Image.open(os.path.join(OUT, "tiles.png"))
     decals = Image.open(os.path.join(OUT, "decals.png"))
     crates = Image.open(os.path.join(OUT, "crates.png"))
-    for theme in range(5):
+    for theme in range(8):
         ox = theme * 260 + 10
         floor = Image.open(os.path.join(OUT, f"floor_{theme}.png"))
         for fx in range(0, 240, F):

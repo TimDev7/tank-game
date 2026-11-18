@@ -84,7 +84,7 @@ func _build() -> void:
 	_buttons_box.add_theme_constant_override("separation", 20)
 	_buttons_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_buttons_box)
-	play_ai_button = _mode_button(tr("PLAY VS COMPUTER"), tr("Solo  -  5 levels, crates and ricochets"), BLUE, [1], "AI")
+	play_ai_button = _mode_button(tr("PLAY VS COMPUTER"), tr("Solo  -  30 levels, crates and ricochets"), BLUE, [1], "AI")
 	play_ai_button.pressed.connect(start.bind(true))
 	_buttons_box.add_child(play_ai_button)
 	play_pvp_button = _mode_button(tr("2 PLAYERS"), tr("Same keyboard  -  WASD vs Arrows"), RED, [1, 2], "")

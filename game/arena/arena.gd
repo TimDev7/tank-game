@@ -11,7 +11,7 @@ extends Node2D
 ##      └─ SpawnPoint (player_index = 2)
 ##
 ## load_level(i) целиком оформляет арену кодом: тайлсет стен (по теме), бесшовный пол, декали, ящики.
-## Тема = индекс уровня: 0 бетон, 1 песчаник, 2 мох, 3 сталь, 4 кирпич.
+## Тема = индекс уровня % THEME_COUNT (8 тем: бетон, песчаник, мох, сталь, кирпич, лёд, лава, неон).
 ## Арена не знает про логику танков: она отдаёт позиции, границы поля и ящики.
 
 signal level_changed(index: int)
@@ -25,14 +25,21 @@ const FLOOR_TEXTURES := [
 	preload("res://game/arena/art/floor_2.png"),
 	preload("res://game/arena/art/floor_3.png"),
 	preload("res://game/arena/art/floor_4.png"),
+	preload("res://game/arena/art/floor_5.png"),
+	preload("res://game/arena/art/floor_6.png"),
+	preload("res://game/arena/art/floor_7.png"),
 ]
 const FLOOR_COLORS := [
-	Color(0.15, 0.17, 0.16), Color(0.46, 0.38, 0.27), Color(0.19, 0.31, 0.18),
-	Color(0.18, 0.21, 0.27), Color(0.30, 0.23, 0.17),
+	Color(0.15, 0.17, 0.16), Color(0.46, 0.38, 0.27), Color(0.19, 0.31, 0.18), Color(0.18, 0.21, 0.27),
+	Color(0.30, 0.23, 0.17), Color(0.39, 0.50, 0.61), Color(0.15, 0.12, 0.13), Color(0.08, 0.07, 0.14),
 ]
 ## Какие декали (индексы в decals.png: 0 трещина, 1 пятно, 2 камешки, 3 трава, 4 копоть, 5 лужа) уместны теме.
-const THEME_DECALS := [[0, 1, 5, 4], [0, 2, 4, 0], [3, 3, 2, 5], [0, 1, 4, 5], [2, 4, 5, 2]]
-const THEME_COUNT := 5
+const THEME_DECALS := [
+	[0, 1, 5, 4], [0, 2, 4, 0], [3, 3, 2, 5], [0, 1, 4, 5], [2, 4, 5, 2],
+	[0, 5, 2, 1], [4, 0, 1, 2], [0, 1, 5, 4],
+]
+## Темы: 0 бетон, 1 песчаник, 2 мох/трава, 3 сталь, 4 кирпич, 5 лёд, 6 лава, 7 неон. Тема уровня = индекс % THEME_COUNT.
+const THEME_COUNT := 8
 const DECAL_COUNT := 18
 
 @export var walls: TileMapLayer

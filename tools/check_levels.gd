@@ -32,6 +32,12 @@ func _init() -> void:
 			if not set.has(Vector2i(Levels.COLS - 1 - c.x, c.y)):
 				mirrored = false
 		_check(mirrored, "[%d %s] уровень зеркален по горизонтали" % [i + 1, name])
+		if Levels.is_vmirror(i):
+			var vm := true
+			for c in cells:
+				if not set.has(Vector2i(c.x, Levels.ROWS - 1 - c.y)):
+					vm = false
+			_check(vm, "[%d %s] уровень зеркален по вертикали" % [i + 1, name])
 		_check(arena.walls.get_used_cells().size() == cells.size(), "[%d %s] арена содержит %d клеток стен" % [i + 1, name, cells.size()])
 
 		var spawn_ok := true

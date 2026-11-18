@@ -113,11 +113,11 @@ func _build() -> void:
 	var column := VBoxContainer.new()
 	column.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
-	column.add_theme_constant_override("separation", 18)
+	column.add_theme_constant_override("separation", 14)
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_pause_overlay.add_child(column)
 
-	var paused_label := _make_label(72, Color.WHITE)
+	var paused_label := _make_label(64, Color.WHITE)
 	paused_label.text = tr("PAUSED")
 	paused_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(paused_label)
@@ -126,20 +126,22 @@ func _build() -> void:
 	select_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(select_label)
 
-	var row := HBoxContainer.new()
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("separation", 18)
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	column.add_child(row)
+	var grid := GridContainer.new()  # 30 уровней: сетка 10 x 3
+	grid.columns = 10
+	grid.add_theme_constant_override("h_separation", 8)
+	grid.add_theme_constant_override("v_separation", 8)
+	grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	grid.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(grid)
 	for i in Levels.count():
 		var card: Button = LEVEL_CARD.new()
 		card.call("setup", i, i == _current_level)
 		card.pressed.connect(func(): level_selected.emit(i))
-		row.add_child(card)
+		grid.add_child(card)
 		level_cards.append(card)
 
 	var keys_label := _make_label(22, Color(0.8, 0.82, 0.8))
-	keys_label.text = tr("Esc / P - resume   |   1-5 - level   |   M - menu")
+	keys_label.text = tr("Esc / P - resume   |   Arrows + Enter or click - level   |   M - menu")
 	keys_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(keys_label)
 

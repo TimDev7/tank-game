@@ -25,7 +25,8 @@ func _init() -> void:
 		_arena.load_level(i)
 		await _frames(2)
 		var tile := _arena.walls.get_cell_atlas_coords(Vector2i(0, 0))
-		_check(tile.x == i and _arena.theme == i, "уровень %d: своя тема стен (столбец атласа %d)" % [i + 1, tile.x])
+		_check(tile.x == i % Arena.THEME_COUNT and _arena.theme == i % Arena.THEME_COUNT,
+			"уровень %d: тема стен %d" % [i + 1, tile.x])
 	_arena.load_level(0)
 	await _frames(3)
 

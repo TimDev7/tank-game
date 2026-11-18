@@ -113,11 +113,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		else:
 			start_round()
 		get_viewport().set_input_as_handled()
-	elif _paused and event is InputEventKey and event.pressed and not event.echo:
-		var number := int((event as InputEventKey).physical_keycode) - int(KEY_1)  # клавиши 1..N = уровни
-		if number >= 0 and number < Levels.count():
-			get_viewport().set_input_as_handled()
-			select_level(number)
 
 
 ## Выбор уровня из меню паузы: играем его до конца матча, раунд перезапускается (счёт сохраняется).

@@ -78,22 +78,24 @@ func _run() -> void:
 		"выбран уровень %d (%s), раунд перезапущен" % [target + 1, arena.get_level_name()])
 	_check(mgr.scores == scores_before, "счёт сохранён при смене уровня")
 
-	# выбор клавишей 5 из паузы
+	# выбор клавиатурой: фокус на карточку 29 + Enter (последний ряд сетки)
 	await _action("pause")
 	await get_tree().process_frame
-	await _key(KEY_5)
+	hud.level_cards[28].grab_focus()
+	await _key(KEY_ENTER)
 	await get_tree().process_frame
-	_check(not get_tree().paused and mgr.level == 4 and arena.level_index == 4, "клавиша «5» в паузе выбирает уровень 5")
+	_check(not get_tree().paused and mgr.level == 28 and arena.level_index == 28,
+		"Enter на карточке 29 выбирает уровень 29 (%s)" % arena.get_level_name())
 
 	# уровень зафиксирован: следующий раунд на том же
 	(mgr.tanks[1] as Tank).die()
 	await get_tree().create_timer(RoundManager.ROUND_END_DELAY + 1.0).timeout
-	_check(mgr.state == RoundManager.State.PLAYING and mgr.level == 4, "выбранный уровень держится между раундами")
+	_check(mgr.state == RoundManager.State.PLAYING and mgr.level == 28, "выбранный уровень держится между раундами")
 
-	# цифры вне паузы ничего не меняют
+	# цифры не выбирают уровни (их 30, клавиш на всех не хватит)
 	await _key(KEY_2)
 	await get_tree().process_frame
-	_check(mgr.level == 4, "цифры вне паузы не меняют уровень")
+	_check(mgr.level == 28, "цифровые клавиши не меняют уровень")
 
 	# клавиши паузы: Esc (основная) и P (запасная для fullscreen в браузере)
 	await _key(KEY_ESCAPE)

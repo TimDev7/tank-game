@@ -23,6 +23,10 @@ func _run() -> void:
 	var arena: Arena = _match.get_node("Arena")
 	var t1: Tank = _mgr.tanks[1]
 	var t2: Tank = _mgr.tanks[2]
+	_mgr.level = 0  # тесты ниже рассчитаны на раскладку Classic; без этого уровень случайный
+	_mgr.start_round()
+	await get_tree().physics_frame
+	await get_tree().physics_frame
 
 	_check(_mgr.state == RoundManager.State.PLAYING and t1.alive and t2.alive, "матч стартует: раунд идёт, оба танка живы")
 	_check(t1.global_position.is_equal_approx(arena.get_spawn(1).global_position)
