@@ -89,6 +89,19 @@ func _run() -> void:
 	await _frames(2)
 	_check(not get_tree().paused, "второе нажатие P снимает паузу")
 
+	# возврат в меню по M: только из паузы или после конца матча
+	var menu_hits := [0]
+	_mgr.auto_change_scene = false
+	_mgr.menu_requested.connect(func(): menu_hits[0] += 1)
+	_press("menu")
+	await _frames(2)
+	_check(menu_hits[0] == 0, "M во время игры ничего не делает")
+	_press("pause")
+	await _frames(2)
+	_press("menu")
+	await _frames(2)
+	_check(menu_hits[0] == 1 and not get_tree().paused, "M из паузы -> меню, пауза снята")
+
 	print("ALL OK" if _ok else "FAILED")
 	get_tree().quit(0 if _ok else 1)
 

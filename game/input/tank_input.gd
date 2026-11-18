@@ -28,6 +28,7 @@ const LAYOUTS := {
 const SHARED := {
 	"pause": KEY_P,
 	"restart_round": KEY_R,
+	"menu": KEY_M,  # в главное меню: только из паузы или после конца матча
 }
 
 

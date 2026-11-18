@@ -83,7 +83,7 @@ func _build() -> void:
 	_pause_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_pause_overlay.visible = false
 	var paused_label := _make_label(64, Color.WHITE)
-	paused_label.text = tr("PAUSED") + "\n" + tr("Press P to resume")
+	paused_label.text = tr("PAUSED") + "\n" + tr("P - resume   |   M - menu")
 	paused_label.set_anchors_preset(Control.PRESET_FULL_RECT)
 	paused_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	paused_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER

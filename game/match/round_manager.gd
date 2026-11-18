@@ -11,10 +11,12 @@ signal scores_changed(blue: int, red: int)
 signal round_started
 signal round_ended(winner: int)  ## 0 — ничья
 signal match_ended(winner: int)
+signal menu_requested
 
 enum State { PLAYING, ROUND_OVER, MATCH_OVER }
 
 const TANK_SCENE := preload("res://game/tanks/tank.tscn")
+const MENU_SCENE := "res://game/menu/main_menu.tscn"
 const WINS_TO_MATCH := 5
 const ROUND_END_DELAY := 1.8
 const MAX_BULLETS_PER_TANK := 5
@@ -25,6 +27,8 @@ const PLAYER_NAMES := {1: "Blue", 2: "Red"}
 @export var hud: Hud
 ## Красным (игрок 2) управляет компьютер. Включается и из главного меню через MatchConfig.vs_ai.
 @export var vs_ai: bool = false
+## false — только сигнал menu_requested, без смены сцены (для автотестов).
+@export var auto_change_scene: bool = true
 
 var state: State = State.ROUND_OVER
 var scores: Dictionary = {1: 0, 2: 0}
@@ -83,12 +87,29 @@ func _unhandled_input(event: InputEvent) -> void:
 		if state == State.PLAYING or _paused:
 			_set_paused(not _paused)
 			get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("menu") and not event.is_echo():
+		if _paused or state == State.MATCH_OVER:
+			get_viewport().set_input_as_handled()
+			go_to_menu()
 	elif event.is_action_pressed("restart_round") and not event.is_echo() and not _paused:
 		if state == State.MATCH_OVER:
 			start_match()
 		else:
 			start_round()
 		get_viewport().set_input_as_handled()
+
+
+## В главное меню. gameplayStop уже был отправлен при паузе/конце матча — повторно не шлём.
+func go_to_menu() -> void:
+	_paused = false
+	var core := get_node_or_null("/root/Core")
+	if core:
+		core.toggle_pause(false, "player")
+	else:
+		get_tree().paused = false
+	if auto_change_scene:
+		get_tree().change_scene_to_file(MENU_SCENE)
+	menu_requested.emit()
 
 
 func _set_paused(on: bool) -> void:
@@ -153,7 +174,7 @@ func _resolve_round() -> void:
 	if winner != 0 and scores[winner] >= WINS_TO_MATCH:
 		state = State.MATCH_OVER
 		if hud:
-			hud.show_message(tr("%s wins the match!") % tr(PLAYER_NAMES[winner]) + "\n" + tr("Press R for a new match"))
+			hud.show_message(tr("%s wins the match!") % tr(PLAYER_NAMES[winner]) + "\n" + tr("R - new match   |   M - menu"))
 		match_ended.emit(winner)
 		return
 
