@@ -1,7 +1,7 @@
 [gd_scene format=4 uid="uid://c8ju6psrp8rd8"]
 
 [ext_resource type="Script" uid="uid://ddi7jbofgos77" path="res://game/arena/arena.gd" id="1_ayqyn"]
-[ext_resource type="TileSet" path="res://game/arena/arena_tileset.tres" id="2_sljpa"]
+[ext_resource type="TileSet" uid="uid://qlapipl8dk6c" path="res://game/arena/arena_tileset.tres" id="2_sljpa"]
 [ext_resource type="Script" uid="uid://dnf351ybpmvem" path="res://game/arena/spawn_point.gd" id="3_8eybb"]
 
 [node name="Arena" type="Node2D" unique_id=682189507 node_paths=PackedStringArray("walls")]
