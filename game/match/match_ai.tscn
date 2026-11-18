@@ -1,15 +1,12 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://2c3jls06bfi0"]
 
-[ext_resource type="PackedScene" path="res://game/arena/arena.tscn" id="1_3trcv"]
-[ext_resource type="Script" path="res://game/arena/arena.gd" id="2_5gpyw"]
-[ext_resource type="Script" path="res://game/match/round_manager.gd" id="3_bt7n3"]
-[ext_resource type="Script" path="res://game/match/hud.gd" id="4_1tu70"]
+[ext_resource type="PackedScene" uid="uid://c8ju6psrp8rd8" path="res://game/arena/arena.tscn" id="1_3trcv"]
+[ext_resource type="Script" uid="uid://8rqtmwd8y4sl" path="res://game/match/round_manager.gd" id="3_bt7n3"]
+[ext_resource type="Script" uid="uid://cygdhswdd3hr2" path="res://game/match/hud.gd" id="4_1tu70"]
 
 [node name="Match" type="Node2D" unique_id=1549674004]
 
-[node name="Arena" type="Node2D" parent="." unique_id=682189507 node_paths=PackedStringArray("walls") instance=ExtResource("1_3trcv")]
-script = ExtResource("2_5gpyw")
-walls = NodePath("Walls")
+[node name="Arena" parent="." unique_id=682189507 instance=ExtResource("1_3trcv")]
 
 [node name="Bullets" type="Node2D" parent="." unique_id=368242522]
 
