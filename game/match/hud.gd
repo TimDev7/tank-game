@@ -3,8 +3,14 @@ extends CanvasLayer
 ## Интерфейс матча, строится кодом: счёт, сообщение по центру, подсказка, оверлей паузы.
 ## Все строки английские (правило CrazyGames), через tr() для будущих переводов.
 
+## Игрок выбрал уровень в меню паузы (индекс 0..Levels.count()-1).
+signal level_selected(index: int)
+
 const BLUE := Color(0.45, 0.7, 1.0)
 const RED := Color(1.0, 0.45, 0.4)
+const LEVEL_CARD := preload("res://game/match/level_card.gd")
+
+var level_cards: Array[Button] = []
 
 var _blue_label: Label
 var _red_label: Label
@@ -12,6 +18,7 @@ var _message: Label
 var _hint: Label
 var _level_label: Label
 var _pause_overlay: Control
+var _current_level: int = 0
 
 
 func _ready() -> void:
@@ -32,6 +39,9 @@ func show_message(text: String) -> void:
 
 func set_level(number: int, total: int, level_name: String) -> void:
 	_level_label.text = "%s %d/%d  -  %s" % [tr("LEVEL"), number, total, tr(level_name)]
+	_current_level = number - 1
+	for card in level_cards:
+		card.call("set_current", card.get("level_index") == _current_level)
 
 
 func set_hint(text: String) -> void:
@@ -40,6 +50,12 @@ func set_hint(text: String) -> void:
 
 func show_pause(on: bool) -> void:
 	_pause_overlay.visible = on
+	if on and _current_level < level_cards.size():
+		level_cards[_current_level].grab_focus()  # стрелки/Enter работают сразу
+	elif not on:
+		var focused := get_viewport().gui_get_focus_owner()
+		if focused:
+			focused.release_focus()  # чтобы Enter/пробел (стрельба) не нажимали скрытую кнопку
 
 
 func _build() -> void:
@@ -88,17 +104,44 @@ func _build() -> void:
 
 	# пауза
 	_pause_overlay = ColorRect.new()
-	(_pause_overlay as ColorRect).color = Color(0, 0, 0, 0.6)
-	_pause_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_pause_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	(_pause_overlay as ColorRect).color = Color(0, 0, 0, 0.78)
+	_pause_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_pause_overlay.mouse_filter = Control.MOUSE_FILTER_STOP  # клики не проваливаются в игру
 	_pause_overlay.visible = false
-	var paused_label := _make_label(64, Color.WHITE)
-	paused_label.text = tr("PAUSED") + "\n" + tr("P - resume   |   M - menu")
-	paused_label.set_anchors_preset(Control.PRESET_FULL_RECT)
-	paused_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	paused_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_pause_overlay.add_child(paused_label)
 	root.add_child(_pause_overlay)
+
+	var column := VBoxContainer.new()
+	column.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	column.alignment = BoxContainer.ALIGNMENT_CENTER
+	column.add_theme_constant_override("separation", 18)
+	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_pause_overlay.add_child(column)
+
+	var paused_label := _make_label(72, Color.WHITE)
+	paused_label.text = tr("PAUSED")
+	paused_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	column.add_child(paused_label)
+	var select_label := _make_label(30, Color(0.85, 0.87, 0.85))
+	select_label.text = tr("SELECT LEVEL")
+	select_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	column.add_child(select_label)
+
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 18)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(row)
+	for i in Levels.count():
+		var card: Button = LEVEL_CARD.new()
+		card.call("setup", i, i == _current_level)
+		card.pressed.connect(func(): level_selected.emit(i))
+		row.add_child(card)
+		level_cards.append(card)
+
+	var keys_label := _make_label(22, Color(0.8, 0.82, 0.8))
+	keys_label.text = tr("P - resume   |   1-5 - level   |   M - menu")
+	keys_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	column.add_child(keys_label)
 
 	set_scores(0, 0)
 

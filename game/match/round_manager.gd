@@ -58,6 +58,8 @@ func _ready() -> void:
 		(tanks[2] as Tank).brain = brain
 		vs_ai = true
 	_apply_hint.call_deferred()
+	if hud:
+		hud.level_selected.connect(select_level)
 	# Hud — следующий сосед в сцене и строит UI в своём _ready, который идёт после нашего.
 	start_match.call_deferred()
 
@@ -111,6 +113,21 @@ func _unhandled_input(event: InputEvent) -> void:
 		else:
 			start_round()
 		get_viewport().set_input_as_handled()
+	elif _paused and event is InputEventKey and event.pressed and not event.echo:
+		var number := int((event as InputEventKey).physical_keycode) - int(KEY_1)  # клавиши 1..N = уровни
+		if number >= 0 and number < Levels.count():
+			get_viewport().set_input_as_handled()
+			select_level(number)
+
+
+## Выбор уровня из меню паузы: играем его до конца матча, раунд перезапускается (счёт сохраняется).
+func select_level(index: int) -> void:
+	if not _paused:
+		return
+	_fixed_level = true
+	level = clampi(index, 0, Levels.count() - 1)
+	_apply_pause(false)
+	start_round()  # сам отправит gameplayStart
 
 
 ## В главное меню. gameplayStop уже был отправлен при паузе/конце матча — повторно не шлём.
@@ -127,6 +144,11 @@ func go_to_menu() -> void:
 
 
 func _set_paused(on: bool) -> void:
+	_apply_pause(on)
+	_sdk_gameplay(not on)
+
+
+func _apply_pause(on: bool) -> void:
 	_paused = on
 	var core := get_node_or_null("/root/Core")
 	if core:
@@ -135,7 +157,6 @@ func _set_paused(on: bool) -> void:
 		get_tree().paused = on
 	if hud:
 		hud.show_pause(on)
-	_sdk_gameplay(not on)
 
 
 func _on_tank_fired(tank: Tank, muzzle_position: Vector2, direction: Vector2) -> void:
@@ -205,9 +226,9 @@ func _apply_hint() -> void:
 	if hud == null:
 		return
 	if vs_ai:
-		hud.set_hint(tr("Blue (you): WASD + Space   |   Red: computer   |   P - pause   |   R - restart round"))
+		hud.set_hint(tr("Blue (you): WASD + Space   |   Red: computer   |   P - pause / levels   |   R - restart round"))
 	else:
-		hud.set_hint(tr("Blue: WASD + Space   |   Red: Arrows + Enter   |   P - pause   |   R - restart round"))
+		hud.set_hint(tr("Blue: WASD + Space   |   Red: Arrows + Enter   |   P - pause / levels   |   R - restart round"))
 
 
 func _emit_scores() -> void:

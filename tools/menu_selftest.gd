@@ -1,19 +1,19 @@
 extends Node
-## Автотест главного меню в реальном проекте. Запуск:
+## Автотест главного меню и выбора уровня в меню паузы. Запуск (реальный проект, с автозагрузками):
 ##   Godot_console.exe --headless --path . res://tools/menu_selftest.tscn
 
 var _ok := true
 
 
-func _make_menu(select: bool = true) -> MainMenu:
+func _make_menu() -> MainMenu:
 	var menu: MainMenu = (load("res://game/menu/main_menu.tscn") as PackedScene).instantiate()
 	menu.auto_start = false  # не менять сцену — иначе потеряем сам тест
-	menu.show_level_select = select
 	add_child(menu)
 	return menu
 
 
 func _ready() -> void:
+	TankInput.register_actions()
 	_run.call_deferred()
 
 
@@ -24,74 +24,32 @@ func _run() -> void:
 	await get_tree().process_frame
 
 	_check(menu.play_ai_button != null and menu.play_pvp_button != null, "две кнопки режимов созданы")
-	_check(menu.main_page.visible and not menu.level_page.visible, "сначала видна главная страница")
 	_check(menu.play_ai_button.has_focus(), "фокус по умолчанию на «Play vs Computer»")
 	_check(menu.play_ai_button.get_child_count() > 0 and menu.play_ai_button.get_child(0) is JuicyButtonComponent,
 		"кнопка использует JuicyButtonComponent из шаблона")
 
 	var got := []
-	menu.start_requested.connect(func(vs_ai: bool, level: int): got.append([vs_ai, level]))
-
-	# «Play vs Computer» -> страница выбора уровня, игра ещё не стартовала
+	menu.start_requested.connect(func(vs_ai: bool): got.append(vs_ai))
 	menu.play_ai_button.pressed.emit()
 	await get_tree().process_frame
-	_check(menu.level_page.visible and not menu.main_page.visible and got.is_empty(), "«Play vs Computer» открывает выбор уровня")
-	_check(menu.level_buttons.size() == Levels.count() and menu.level_buttons[0].has_focus(),
-		"кнопок уровней: %d, фокус на первой" % menu.level_buttons.size())
-
-	# Back возвращает
-	menu.back_button.pressed.emit()
-	await get_tree().process_frame
-	_check(menu.main_page.visible and not menu.level_page.visible and menu.play_ai_button.has_focus(), "Back возвращает на главную страницу")
-
-	# Backspace тоже
-	menu.show_level_page()
-	await _key(KEY_BACKSPACE)
-	_check(menu.main_page.visible, "Backspace возвращает на главную страницу")
-
-	# клик по кнопке уровня 3
-	menu.show_level_page()
-	menu.level_buttons[2].pressed.emit()
-	await get_tree().process_frame
-	_check(got == [[true, 2]] and MatchConfig.vs_ai and MatchConfig.level == 2, "кнопка «3» запускает матч с ИИ на уровне индекс 2")
+	_check(got == [true] and MatchConfig.vs_ai and MatchConfig.level == -1, "«Play vs Computer» — сразу в матч с ИИ, один клик")
 	menu.play_pvp_button.pressed.emit()
 	await get_tree().process_frame
-	_check(got.size() == 1, "повторный старт игнорируется")
+	_check(got == [true], "повторный старт игнорируется")
 	menu.queue_free()
 
-	# клавиша 4 на странице уровней
 	var menu2 := _make_menu()
 	await get_tree().process_frame
 	var got2 := []
-	menu2.start_requested.connect(func(vs_ai: bool, level: int): got2.append([vs_ai, level]))
-	menu2.show_level_page()
-	await _key(KEY_4)
-	_check(got2 == [[true, 3]], "клавиша «4» запускает уровень 4")
+	menu2.start_requested.connect(func(vs_ai: bool): got2.append(vs_ai))
+	menu2.play_pvp_button.pressed.emit()
+	await get_tree().process_frame
+	_check(got2 == [false] and not MatchConfig.vs_ai, "«2 Players» — сразу в матч, без ИИ")
 	menu2.queue_free()
 
-	# PvP: сразу в матч, ротация уровней
-	var menu3 := _make_menu()
-	await get_tree().process_frame
-	var got3 := []
-	menu3.start_requested.connect(func(vs_ai: bool, level: int): got3.append([vs_ai, level]))
-	menu3.play_pvp_button.pressed.emit()
-	await get_tree().process_frame
-	_check(got3 == [[false, -1]] and not MatchConfig.vs_ai and MatchConfig.level == -1, "«2 Players» — сразу в матч, ротация уровней")
-	menu3.queue_free()
-
-	# без выбора уровня (флаг): vs Computer стартует сразу
-	var menu4 := _make_menu(false)
-	await get_tree().process_frame
-	var got4 := []
-	menu4.start_requested.connect(func(vs_ai: bool, level: int): got4.append([vs_ai, level]))
-	menu4.play_ai_button.pressed.emit()
-	await get_tree().process_frame
-	_check(got4 == [[true, -1]], "show_level_select=false: vs Computer стартует сразу")
-	menu4.queue_free()
-
-	# матч с выбранным уровнем держит его между раундами
+	# матч против ИИ из меню: уровни ротируются
 	MatchConfig.vs_ai = true
-	MatchConfig.level = 3
+	MatchConfig.level = -1
 	var m: Node = (load("res://game/match/match.tscn") as PackedScene).instantiate()
 	add_child(m)
 	await get_tree().process_frame
@@ -99,16 +57,57 @@ func _run() -> void:
 	await get_tree().process_frame
 	var mgr: RoundManager = m.get_node("RoundManager")
 	var arena: Arena = m.get_node("Arena")
+	var hud: Hud = m.get_node("Hud")
 	_check(mgr.vs_ai and (mgr.tanks[2] as Tank).brain != null, "match.tscn берёт режим из MatchConfig (красный = ИИ)")
-	_check(mgr.level == 3 and arena.level_index == 3, "матч стартует на выбранном уровне 4 (%s)" % arena.get_level_name())
+	_check(hud.level_cards.size() == Levels.count(), "в меню паузы %d карточек уровней" % hud.level_cards.size())
+
+	# пауза показывает выбор уровня и фокус на текущем
+	await _action("pause")
+	await get_tree().process_frame
+	_check(get_tree().paused and hud._pause_overlay.visible, "P открывает паузу с выбором уровня")
+	_check(hud.level_cards[mgr.level].has_focus(), "фокус на карточке текущего уровня")
+	var scores_before := mgr.scores.duplicate()
+
+	# выбор карточкой: уровень 3
+	var target := (mgr.level + 2) % Levels.count()
+	hud.level_cards[target].pressed.emit()
+	await get_tree().process_frame
+	await get_tree().process_frame
+	_check(not get_tree().paused and not hud._pause_overlay.visible, "после выбора пауза снята")
+	_check(mgr.level == target and arena.level_index == target and mgr.state == RoundManager.State.PLAYING,
+		"выбран уровень %d (%s), раунд перезапущен" % [target + 1, arena.get_level_name()])
+	_check(mgr.scores == scores_before, "счёт сохранён при смене уровня")
+
+	# выбор клавишей 5 из паузы
+	await _action("pause")
+	await get_tree().process_frame
+	await _key(KEY_5)
+	await get_tree().process_frame
+	_check(not get_tree().paused and mgr.level == 4 and arena.level_index == 4, "клавиша «5» в паузе выбирает уровень 5")
+
+	# уровень зафиксирован: следующий раунд на том же
 	(mgr.tanks[1] as Tank).die()
 	await get_tree().create_timer(RoundManager.ROUND_END_DELAY + 1.0).timeout
-	_check(mgr.state == RoundManager.State.PLAYING and mgr.level == 3 and arena.level_index == 3, "следующий раунд — на том же уровне")
+	_check(mgr.state == RoundManager.State.PLAYING and mgr.level == 4, "выбранный уровень держится между раундами")
+
+	# цифры вне паузы ничего не меняют
+	await _key(KEY_2)
+	await get_tree().process_frame
+	_check(mgr.level == 4, "цифры вне паузы не меняют уровень")
+
 	MatchConfig.vs_ai = false
 	MatchConfig.level = -1
-
 	print("ALL OK" if _ok else "FAILED")
 	get_tree().quit(0 if _ok else 1)
+
+
+func _action(action: String) -> void:
+	for pressed in [true, false]:
+		var ev := InputEventAction.new()
+		ev.action = action
+		ev.pressed = pressed
+		Input.parse_input_event(ev)
+		await get_tree().process_frame
 
 
 func _key(keycode: Key) -> void:
