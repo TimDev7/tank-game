@@ -5,7 +5,8 @@ extends RefCounted
 ##
 ## Правила CrazyGames (docs/crazygames-requirements.md):
 ## - Используем physical_keycode: WASD остаётся в тех же физических позициях на AZERTY/QWERTZ (там это ZQSD/WASD).
-## - Esc НЕ используем: он выходит из fullscreen. Пауза — P.
+## - Пауза: Esc (по решению заказчика) + P как запасная. В браузере в fullscreen Esc первым делом
+##   выходит из полноэкранного режима, и страница часто его не получает — P гарантирует паузу там.
 ## - Fullscreen-кнопок своих нет: его даёт платформа.
 ##
 ## Имена действий: "p1_up", "p1_down", "p1_left", "p1_right", "p1_fire" (то же для p2_*),
@@ -25,8 +26,9 @@ const LAYOUTS := {
 	},
 }
 
+## Значение — одна клавиша или массив клавиш.
 const SHARED := {
-	"pause": KEY_P,
+	"pause": [KEY_ESCAPE, KEY_P],
 	"restart_round": KEY_R,
 	"menu": KEY_M,  # в главное меню: только из паузы или после конца матча
 }
@@ -42,7 +44,9 @@ static func register_actions() -> void:
 		for name in LAYOUTS[player]:
 			_bind(action(player, name), LAYOUTS[player][name])
 	for name in SHARED:
-		_bind(StringName(name), SHARED[name])
+		var keys: Variant = SHARED[name]
+		for key in (keys if keys is Array else [keys]):
+			_bind(StringName(name), key)
 
 
 ## Вектор движения игрока: x — поворот (-1 влево, 1 вправо), y — газ (-1 вперёд/up, 1 назад/down).

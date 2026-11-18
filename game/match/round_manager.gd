@@ -2,7 +2,7 @@ class_name RoundManager
 extends Node
 ## Матч PvP на одном устройстве: появление танков, выстрелы, раунды, счёт, пауза, перезапуск.
 ##
-## Клавиши: P — пауза (НЕ Esc: он выходит из fullscreen), R — перезапуск раунда
+## Клавиши: Esc (или P) — пауза, R — перезапуск раунда
 ## (после конца матча — новый матч).
 ## SDK (правила CrazyGames): gameplayStart на каждом старте/возобновлении игры,
 ## gameplayStop на каждой паузе/конце раунда. Реклама в этом классе не показывается.
@@ -226,9 +226,9 @@ func _apply_hint() -> void:
 	if hud == null:
 		return
 	if vs_ai:
-		hud.set_hint(tr("Blue (you): WASD + Space   |   Red: computer   |   P - pause / levels   |   R - restart round"))
+		hud.set_hint(tr("Blue (you): WASD + Space   |   Red: computer   |   Esc - pause / levels   |   R - restart round"))
 	else:
-		hud.set_hint(tr("Blue: WASD + Space   |   Red: Arrows + Enter   |   P - pause / levels   |   R - restart round"))
+		hud.set_hint(tr("Blue: WASD + Space   |   Red: Arrows + Enter   |   Esc - pause / levels   |   R - restart round"))
 
 
 func _emit_scores() -> void:

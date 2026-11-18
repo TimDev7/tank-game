@@ -95,6 +95,16 @@ func _run() -> void:
 	await get_tree().process_frame
 	_check(mgr.level == 4, "цифры вне паузы не меняют уровень")
 
+	# клавиши паузы: Esc (основная) и P (запасная для fullscreen в браузере)
+	await _key(KEY_ESCAPE)
+	_check(get_tree().paused and hud._pause_overlay.visible, "Esc открывает паузу")
+	await _key(KEY_ESCAPE)
+	_check(not get_tree().paused and not hud._pause_overlay.visible, "повторный Esc снимает паузу")
+	await _key(KEY_P)
+	_check(get_tree().paused, "P тоже открывает паузу")
+	await _key(KEY_P)
+	_check(not get_tree().paused, "повторный P снимает паузу")
+
 	MatchConfig.vs_ai = false
 	MatchConfig.level = -1
 	print("ALL OK" if _ok else "FAILED")

@@ -84,7 +84,7 @@ func _build() -> void:
 	play_ai_button.focus_neighbor_top = play_pvp_button.get_path()
 	play_pvp_button.focus_neighbor_bottom = play_ai_button.get_path()
 
-	var hint := _label(tr("Blue: WASD + Space   |   Red: Arrows + Enter   |   P - pause / levels"), 18, Color(0.7, 0.72, 0.7, 0.9))
+	var hint := _label(tr("Blue: WASD + Space   |   Red: Arrows + Enter   |   Esc - pause / levels"), 18, Color(0.7, 0.72, 0.7, 0.9))
 	hint.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
 	hint.offset_top = -56.0
 	hint.offset_bottom = -26.0

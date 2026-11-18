@@ -95,7 +95,7 @@ func _build() -> void:
 
 	# подсказка снизу (внутри рамки арены, нижняя стена 40 px)
 	_hint = _make_label(16, Color(0.8, 0.8, 0.8, 0.9))
-	_hint.text = tr("Blue: WASD + Space   |   Red: Arrows + Enter   |   P - pause   |   R - restart round")
+	_hint.text = tr("Blue: WASD + Space   |   Red: Arrows + Enter   |   Esc - pause   |   R - restart round")
 	_hint.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_hint.offset_top = -34.0
@@ -139,7 +139,7 @@ func _build() -> void:
 		level_cards.append(card)
 
 	var keys_label := _make_label(22, Color(0.8, 0.82, 0.8))
-	keys_label.text = tr("P - resume   |   1-5 - level   |   M - menu")
+	keys_label.text = tr("Esc / P - resume   |   1-5 - level   |   M - menu")
 	keys_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(keys_label)
 
