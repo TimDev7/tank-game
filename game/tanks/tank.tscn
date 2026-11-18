@@ -1,0 +1,23 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/tanks/tank.gd" id="1_yxavp"]
+[ext_resource type="Texture2D" path="res://game/tanks/art/tank_blue_hull.png" id="2_twmqg"]
+[ext_resource type="Texture2D" path="res://game/tanks/art/tank_blue_turret.png" id="3_2pypn"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_2jqi5"]
+size = Vector2(88, 58)
+
+[node name="Tank" type="CharacterBody2D" unique_id=1561195437]
+script = ExtResource("1_yxavp")
+
+[node name="Hull" type="Sprite2D" parent="." unique_id=200047368]
+texture = ExtResource("2_twmqg")
+
+[node name="Turret" type="Sprite2D" parent="." unique_id=1056529391]
+texture = ExtResource("3_2pypn")
+
+[node name="Muzzle" type="Marker2D" parent="." unique_id=1725595245]
+position = Vector2(78, 0)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=103122822]
+shape = SubResource("RectangleShape2D_2jqi5")

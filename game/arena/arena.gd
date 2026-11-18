@@ -32,6 +32,8 @@ func place_tank(tank: Node2D, player_index: int) -> void:
 
 
 func get_spawn(player_index: int) -> SpawnPoint:
+	if _spawns.is_empty() and is_inside_tree():
+		_collect_spawns()  # вызвали раньше, чем отработал _ready арены (например, в том же кадре, что и создание)
 	return _spawns.get(player_index)
 
 
