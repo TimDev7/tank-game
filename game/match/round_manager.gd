@@ -44,7 +44,8 @@ func _ready() -> void:
 		tank.fired.connect(_on_tank_fired)
 		tank.died.connect(_on_tank_died)
 		tanks[player] = tank
-	start_match()
+	# Hud — следующий сосед в сцене и строит UI в своём _ready, который идёт после нашего.
+	start_match.call_deferred()
 
 
 func start_match() -> void:

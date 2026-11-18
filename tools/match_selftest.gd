@@ -18,6 +18,7 @@ func _ready() -> void:
 func _run() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
+	await get_tree().process_frame  # отложенный старт матча
 	_mgr = _match.get_node("RoundManager")
 	var arena: Arena = _match.get_node("Arena")
 	var t1: Tank = _mgr.tanks[1]

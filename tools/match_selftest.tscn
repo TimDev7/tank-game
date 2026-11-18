@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/match_selftest.gd" id="1_1dtfg"]
+
+[node name="MatchSelftest" type="Node" unique_id=850919950]
+script = ExtResource("1_1dtfg")
