@@ -21,13 +21,13 @@ func _init() -> void:
 	arena.place_tank(t2, 2)
 	await physics_frame
 
-	# 1) вперёд: перед спавном P1 стоит блок (x=160), танк должен упереться, передний край <= 160
+	# 1) вперёд: перед спавном P1 стоит блок (x=240), танк должен упереться, передний край <= 240
 	var x0 := t1.global_position.x
 	Input.action_press("p1_up")
 	await _frames(60)
 	Input.action_release("p1_up")
-	_check(t1.global_position.x > x0 + 5.0 and t1.global_position.x + 44.0 <= 161.0,
-		"P1 едет вперёд и упирается в блок (x %.0f -> %.0f, передний край %.0f <= 160)" % [x0, t1.global_position.x, t1.global_position.x + 44.0])
+	_check(t1.global_position.x > x0 + 5.0 and t1.global_position.x + 44.0 <= 241.0,
+		"P1 едет вперёд и упирается в блок (x %.0f -> %.0f, передний край %.0f <= 240)" % [x0, t1.global_position.x, t1.global_position.x + 44.0])
 
 	# 2) поворот: right -> rotation растёт (~1.4 рад за 30 кадров)
 	var r0 := t1.rotation

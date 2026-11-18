@@ -102,8 +102,8 @@ func _wall_cells() -> Array[Vector2i]:
 		half.append(Vector2i(x, ROWS - 1 - 4))
 	for y in range(7, 11):  # вертикальные планки
 		half.append(Vector2i(10, y))
-	for y in range(8, 10):  # маленькие блоки у спавна
-		half.append(Vector2i(4, y))
+	for y in range(8, 10):  # маленькие блоки перед спавном (с запасом под ствол)
+		half.append(Vector2i(6, y))
 	for c in half:
 		cells[c] = true
 		cells[Vector2i(COLS - 1 - c.x, c.y)] = true
