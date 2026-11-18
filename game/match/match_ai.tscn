@@ -1,0 +1,24 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://game/arena/arena.tscn" id="1_3trcv"]
+[ext_resource type="Script" path="res://game/arena/arena.gd" id="2_5gpyw"]
+[ext_resource type="Script" path="res://game/match/round_manager.gd" id="3_bt7n3"]
+[ext_resource type="Script" path="res://game/match/hud.gd" id="4_1tu70"]
+
+[node name="Match" type="Node2D" unique_id=1549674004]
+
+[node name="Arena" type="Node2D" parent="." unique_id=682189507 node_paths=PackedStringArray("walls") instance=ExtResource("1_3trcv")]
+script = ExtResource("2_5gpyw")
+walls = NodePath("Walls")
+
+[node name="Bullets" type="Node2D" parent="." unique_id=368242522]
+
+[node name="RoundManager" type="Node" parent="." unique_id=74325593 node_paths=PackedStringArray("arena", "bullets_root", "hud")]
+script = ExtResource("3_bt7n3")
+arena = NodePath("../Arena")
+bullets_root = NodePath("../Bullets")
+hud = NodePath("../Hud")
+vs_ai = true
+
+[node name="Hud" type="CanvasLayer" parent="." unique_id=1534456699]
+script = ExtResource("4_1tu70")

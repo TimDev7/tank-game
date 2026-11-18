@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/ai_selftest.gd" id="1_4bi5r"]
+
+[node name="AiSelftest" type="Node" unique_id=624222317]
+script = ExtResource("1_4bi5r")
