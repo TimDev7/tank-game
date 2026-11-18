@@ -13,7 +13,24 @@ extends Node2D
 
 @export var walls: TileMapLayer
 
+signal level_changed(index: int)
+
+var level_index: int = 0
 var _spawns: Dictionary = {}  # int -> SpawnPoint
+
+
+## Перерисовывает стены по данным Levels. Точки появления не двигаются.
+func load_level(index: int) -> void:
+	level_index = posmod(index, Levels.count())
+	walls.clear()
+	for cell in Levels.cells(level_index):
+		walls.set_cell(cell, 0, Vector2i.ZERO)
+	walls.update_internals()  # физика тайлов обновляется сразу, а не в конце кадра
+	level_changed.emit(level_index)
+
+
+func get_level_name() -> String:
+	return Levels.level_name(level_index)
 
 
 func _ready() -> void:

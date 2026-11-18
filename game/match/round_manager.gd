@@ -30,6 +30,7 @@ const PLAYER_NAMES := {1: "Blue", 2: "Red"}
 ## false — только сигнал menu_requested, без смены сцены (для автотестов).
 @export var auto_change_scene: bool = true
 
+var level: int = 0  ## индекс текущего уровня в Levels.LIST; меняется каждый раунд
 var state: State = State.ROUND_OVER
 var scores: Dictionary = {1: 0, 2: 0}
 var tanks: Dictionary = {}  # int -> Tank
@@ -63,14 +64,25 @@ func _ready() -> void:
 func start_match() -> void:
 	scores = {1: 0, 2: 0}
 	_emit_scores()
+	level = randi() % Levels.count()
 	start_round()
 
 
-func start_round() -> void:
+## advance = true — следующий уровень (автопереход после раунда); false — тот же (R, старт матча).
+func start_round(advance: bool = false) -> void:
 	_round_id += 1
 	_resolve_queued = false
 	for bullet in bullets_root.get_children():
 		bullet.queue_free()
+	if advance:
+		level = (level + 1) % Levels.count()
+	arena.load_level(level)
+	for player in tanks:
+		var brain: TankBrain = (tanks[player] as Tank).brain
+		if brain != null:
+			brain.rebuild()
+	if hud:
+		hud.set_level(level + 1, Levels.count(), Levels.level_name(level))
 	for player in tanks:
 		var tank: Tank = tanks[player]
 		tank.respawn(arena.get_spawn_transform(player))
@@ -184,7 +196,7 @@ func _resolve_round() -> void:
 	var id := _round_id
 	await get_tree().create_timer(ROUND_END_DELAY).timeout
 	if id == _round_id and state == State.ROUND_OVER:  # не перезапускали вручную за это время
-		start_round()
+		start_round(true)
 
 
 func _apply_hint() -> void:

@@ -49,6 +49,12 @@ func setup(arena: Arena, target: Tank, bullets_root: Node2D) -> void:
 	_build_grid()
 
 
+## Пересобрать сетку поиска пути после смены уровня арены.
+func rebuild() -> void:
+	_build_grid()
+	reset()
+
+
 func reset() -> void:
 	_path.clear()
 	_repath_left = 0.0

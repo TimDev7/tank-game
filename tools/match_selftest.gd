@@ -48,9 +48,16 @@ func _run() -> void:
 		"очко синему, раунд окончен (scores=%s)" % [_mgr.scores])
 	_check(not t1.controls_enabled, "управление выключено до нового раунда")
 
-	# автоматический следующий раунд
+	# автоматический следующий раунд — на новом уровне
+	var level_before := _mgr.level
 	await get_tree().create_timer(RoundManager.ROUND_END_DELAY + 1.0).timeout
 	_check(_mgr.state == RoundManager.State.PLAYING and t1.alive and t2.alive and t1.controls_enabled, "следующий раунд стартует сам")
+	_check(_mgr.level == (level_before + 1) % Levels.count() and arena.level_index == _mgr.level,
+		"следующий раунд идёт на следующем уровне (%d -> %d)" % [level_before, _mgr.level])
+	var lvl := _mgr.level
+	_press("restart_round")
+	await _frames(2)
+	_check(_mgr.level == lvl, "R перезапускает раунд на том же уровне")
 
 	# ничья: оба танка гибнут в одном кадре
 	t1.die()

@@ -10,6 +10,7 @@ var _blue_label: Label
 var _red_label: Label
 var _message: Label
 var _hint: Label
+var _level_label: Label
 var _pause_overlay: Control
 
 
@@ -27,6 +28,10 @@ func set_scores(blue: int, red: int) -> void:
 func show_message(text: String) -> void:
 	_message.text = text
 	_message.visible = not text.is_empty()
+
+
+func set_level(number: int, total: int, level_name: String) -> void:
+	_level_label.text = "%s %d/%d  -  %s" % [tr("LEVEL"), number, total, tr(level_name)]
 
 
 func set_hint(text: String) -> void:
@@ -58,6 +63,11 @@ func _build() -> void:
 	box.add_child(_blue_label)
 	box.add_child(dash)
 	box.add_child(_red_label)
+
+	# номер и название уровня — слева сверху, внутри рамки арены
+	_level_label = _make_label(18, Color(0.8, 0.82, 0.8, 0.85))
+	_level_label.position = Vector2(54, 50)
+	root.add_child(_level_label)
 
 	# сообщение по центру
 	_message = _make_label(54, Color.WHITE)
