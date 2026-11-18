@@ -125,6 +125,7 @@ func _action(action: String) -> void:
 func _key(keycode: Key) -> void:
 	for pressed in [true, false]:
 		var ev := InputEventKey.new()
+		ev.keycode = keycode
 		ev.physical_keycode = keycode
 		ev.pressed = pressed
 		Input.parse_input_event(ev)
