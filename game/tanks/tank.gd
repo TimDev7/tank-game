@@ -30,9 +30,12 @@ const TURRET_TEXTURES := {
 	set(value):
 		player_index = value
 		_apply_skin()
-@export var move_speed: float = 170.0
+## Арт танка рисован 88x58; в игре уменьшается до размера ящика (~40 px в длину).
+const BODY_SCALE := 0.45
+
+@export var move_speed: float = 240.0
 @export var reverse_speed_factor: float = 0.6
-@export var turn_speed: float = 2.8  ## рад/с
+@export var turn_speed: float = 4.2  ## рад/с
 @export var fire_cooldown: float = 0.45
 
 var alive: bool = true
@@ -51,6 +54,7 @@ func _ready() -> void:
 	collision_layer = 1 << (PhysicsLayers.TANK - 1)
 	collision_mask = (1 << (PhysicsLayers.WALL - 1)) | (1 << (PhysicsLayers.TANK - 1)) | (1 << (PhysicsLayers.CRATE - 1))
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
+	_apply_body_scale()
 	_apply_skin()
 
 
@@ -118,6 +122,15 @@ func respawn(at: Transform2D) -> void:
 	_body.set_deferred("disabled", false)
 	if brain != null:
 		brain.reset()
+
+
+func _apply_body_scale() -> void:
+	_hull.scale = Vector2.ONE * BODY_SCALE
+	_turret.scale = Vector2.ONE * BODY_SCALE
+	_muzzle.position *= BODY_SCALE
+	var rect := RectangleShape2D.new()
+	rect.size = (_body.shape as RectangleShape2D).size * BODY_SCALE
+	_body.shape = rect
 
 
 func _apply_skin() -> void:

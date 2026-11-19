@@ -55,7 +55,7 @@ def sc(points):
     return [(x * S, y * S) for x, y in points]
 
 
-def draw_hull(pal):
+def draw_hull(pal, out_scale=1):
     W, H = 96, 64
     img = Image.new("RGBA", (W * S, H * S), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
@@ -104,10 +104,10 @@ def draw_hull(pal):
     for x in (14, 60, 68):
         for y in (14.5, 49.5):
             d.ellipse([(x - 0.9) * S, (y - 0.9) * S, (x + 0.9) * S, (y + 0.9) * S], fill=pal["light"] + (255,))
-    return img.resize((W, H), Image.LANCZOS)
+    return img.resize((W * out_scale, H * out_scale), Image.LANCZOS)
 
 
-def draw_turret(pal):
+def draw_turret(pal, out_scale=1):
     W, H = 160, 64
     cx, cy = 80, 32
     img = Image.new("RGBA", (W * S, H * S), (0, 0, 0, 0))
@@ -154,7 +154,7 @@ def draw_turret(pal):
     d.line(sc([(cx - 28, cy + 10), (cx - 44, cy + 22)]), fill=(20, 20, 22, 255), width=int(0.9 * S))
     # блик
     d.line(sc([(cx - 28, cy - 15), (cx + 2, cy - 19)]), fill=pal["light"] + (200,), width=int(1.0 * S))
-    return img.resize((W, H), Image.LANCZOS)
+    return img.resize((W * out_scale, H * out_scale), Image.LANCZOS)
 
 
 def preview(path):

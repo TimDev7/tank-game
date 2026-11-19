@@ -225,7 +225,7 @@ func _apply_hint() -> void:
 	if vs_ai:
 		hud.set_hint(tr("Blue (you): WASD + Space   |   Red: computer   |   Esc - pause / levels   |   R - restart round"))
 	else:
-		hud.set_hint(tr("Blue: WASD + Space   |   Red: Arrows + Enter   |   Esc - pause / levels   |   R - restart round"))
+		hud.set_hint(tr("Blue: WASD + Space   |   Red: Arrows + /   |   Esc - pause / levels   |   R - restart round"))
 
 
 func _emit_scores() -> void:

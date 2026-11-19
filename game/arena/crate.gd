@@ -6,7 +6,8 @@ extends CharacterBody2D
 ## Виды (спрайты в art/crates.png): 0 дерево, 1 металл, 2 армейский, 3 «опасность».
 ## Физика только в _physics_process (одинаково на 60/144 Гц).
 
-const SIZE := 36.0
+const ART_SIZE := 36.0  ## размер ячейки в спрайт-листе
+const SIZE := 40.0  ## размер в игре = клетка арены = длина танка
 const SHEET := preload("res://game/arena/art/crates.png")
 const DEBRIS_COLORS := [
 	Color(0.69, 0.49, 0.28), Color(0.62, 0.68, 0.76), Color(0.42, 0.52, 0.30), Color(0.92, 0.72, 0.14),
@@ -31,8 +32,9 @@ func _ready() -> void:
 	var sprite := Sprite2D.new()
 	var atlas := AtlasTexture.new()
 	atlas.atlas = SHEET
-	atlas.region = Rect2(variant * SIZE, 0, SIZE, SIZE)
+	atlas.region = Rect2(variant * ART_SIZE, 0, ART_SIZE, ART_SIZE)
 	sprite.texture = atlas
+	sprite.scale = Vector2.ONE * (SIZE / ART_SIZE)
 	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	add_child(sprite)
 

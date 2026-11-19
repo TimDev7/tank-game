@@ -44,12 +44,12 @@ func _init() -> void:
 	await _frames(40)
 	_check(crate.position.x > 250.0 and tank.global_position.x > 150.0 + 40.0,
 		"наезд сдвигает ящик (ящик x=%.0f, танк x=%.0f)" % [crate.position.x, tank.global_position.x])
-	_check(tank.global_position.x + 44.0 <= crate.position.x - 18.0 + 3.0, "танк не заезжает на ящик")
+	_check(tank.global_position.x + 44.0 * Tank.BODY_SCALE <= crate.position.x - 20.0 + 3.0, "танк не заезжает на ящик")
 
 	# --- 2) упор в стену: дальше центра поля ящик не уедет, танк не продавит ---
 	await _frames(300)
 	_check(crate.position.x <= 600.0 - 18.0 + 2.0 and crate.alive, "ящик упирается в стену (x=%.0f)" % crate.position.x)
-	_check(tank.global_position.x + 44.0 <= crate.position.x - 18.0 + 3.0, "танк не продавливает ящик через стену")
+	_check(tank.global_position.x + 44.0 * Tank.BODY_SCALE <= crate.position.x - 20.0 + 3.0, "танк не продавливает ящик через стену")
 	Input.action_release("p1_up")
 
 	# --- 3) инерции нет: отпустили — ящик встал ---

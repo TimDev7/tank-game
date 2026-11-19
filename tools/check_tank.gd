@@ -26,8 +26,8 @@ func _init() -> void:
 	Input.action_press("p1_up")
 	await _frames(60)
 	Input.action_release("p1_up")
-	_check(t1.global_position.x > x0 + 5.0 and t1.global_position.x + 44.0 <= 241.0,
-		"P1 едет вперёд и упирается в блок (x %.0f -> %.0f, передний край %.0f <= 240)" % [x0, t1.global_position.x, t1.global_position.x + 44.0])
+	_check(t1.global_position.x > x0 + 5.0 and t1.global_position.x + 44.0 * Tank.BODY_SCALE <= 241.0,
+		"P1 едет вперёд и упирается в блок (x %.0f -> %.0f, передний край %.0f <= 240)" % [x0, t1.global_position.x, t1.global_position.x + 44.0 * Tank.BODY_SCALE])
 
 	# 2) поворот: right -> rotation растёт (~1.4 рад за 30 кадров)
 	var r0 := t1.rotation
@@ -48,7 +48,7 @@ func _init() -> void:
 	Input.action_press("p2_down")  # назад = вправо при rotation PI
 	await _frames(120)
 	Input.action_release("p2_down")
-	var max_x := t2.global_position.x + 44.0
+	var max_x := t2.global_position.x + 44.0 * Tank.BODY_SCALE
 	_check(max_x <= wall_inner_x + 2.0, "P2 упёрся в правую стену (задний край %.1f <= %.1f)" % [max_x, wall_inner_x])
 
 	# 4) выстрел: сигнал fired и кулдаун

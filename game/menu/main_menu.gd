@@ -96,7 +96,7 @@ func _build() -> void:
 	play_pvp_button.focus_neighbor_bottom = play_ai_button.get_path()
 
 	# --- подсказка ---
-	_hint = _label(tr("Blue: WASD + Space   |   Red: Arrows + Enter   |   Esc - pause / levels"), 18, Color(0.82, 0.85, 0.82, 0.95))
+	_hint = _label(tr("Blue: WASD + Space   |   Red: Arrows + /   |   Esc - pause / levels"), 18, Color(0.82, 0.85, 0.82, 0.95))
 	_hint.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
 	_hint.offset_top = -52.0
 	_hint.offset_bottom = -22.0

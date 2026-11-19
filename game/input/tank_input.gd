@@ -22,7 +22,7 @@ const LAYOUTS := {
 	},
 	2: {
 		"up": KEY_UP, "down": KEY_DOWN, "left": KEY_LEFT, "right": KEY_RIGHT,
-		"fire": KEY_ENTER,
+		"fire": KEY_SLASH,
 	},
 }
 

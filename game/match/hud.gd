@@ -95,7 +95,7 @@ func _build() -> void:
 
 	# подсказка снизу (внутри рамки арены, нижняя стена 40 px)
 	_hint = _make_label(16, Color(0.8, 0.8, 0.8, 0.9))
-	_hint.text = tr("Blue: WASD + Space   |   Red: Arrows + Enter   |   Esc - pause   |   R - restart round")
+	_hint.text = tr("Blue: WASD + Space   |   Red: Arrows + /   |   Esc - pause   |   R - restart round")
 	_hint.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_hint.offset_top = -34.0
