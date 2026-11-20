@@ -22,7 +22,7 @@ import draw_tanks as dt
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 OUT = os.path.join(ROOT, "assets", "store")
 FONT = os.path.join(ROOT, "assets", "font", "marimpa.regular.ttf")
-TITLE = ("RICOCHET", "TANKS")
+TITLE = ("RICOCHET", "RUMBLE")
 GOLD = (255, 199, 56)
 GOLD_DARK = (92, 51, 10)
 INK = (20, 26, 34)

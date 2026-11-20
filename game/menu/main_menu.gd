@@ -3,7 +3,7 @@ extends Control
 ## Главное меню. Строится кодом (как Hud).
 ## Живой фон (menu_background.gd) + логотип + две кнопки, любая ведёт сразу в матч за один клик/Enter —
 ## правило CrazyGames «сразу в игру или максимум один клик». Выбор уровня 1-5 — в меню паузы (Esc).
-## Все строки английские через tr(). Название — рабочее, заменить на финальное.
+## Все строки английские через tr(). Название игры - RICOCHET RUMBLE (game_title).
 
 signal start_requested(vs_ai: bool)
 
@@ -18,7 +18,7 @@ const RED := Color(1.0, 0.45, 0.4)
 const GOLD := Color(1.0, 0.78, 0.22)
 const MENU_FONT_COLOR := Color(0.93, 0.95, 0.93)
 
-@export var game_title: String = "RICOCHET TANKS"
+@export var game_title: String = "RICOCHET RUMBLE"
 ## false — только сообщить сигналом (для автотеста), не менять сцену.
 @export var auto_start: bool = true
 
