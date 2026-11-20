@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/record_preview.gd" id="1_0nvp5"]
+
+[node name="RecordPreview" type="Node" unique_id=1136189005]
+script = ExtResource("1_0nvp5")
