@@ -21,6 +21,8 @@ const BANK_STEP := 0.0349066  ## 2 градуса: шаг перебора уг�
 const BANK_MAX_LENGTH := 850.0
 const BANK_MAX_BOUNCES := 2
 const BANK_INTERVAL := 0.35
+const BANK_MAX_AIM_TIME := 1.2  ## с на один угол: дольше - расчёт ошибочен (пуля не попадает), едем дальше
+const BANK_BAN_TIME := 3.0
 
 # «характер» — можно менять для уровней сложности
 var reaction_time: float = 0.12  ## сколько цель должна быть на линии огня до первого выстрела
@@ -49,6 +51,7 @@ var _rng := RandomNumberGenerator.new()
 var _bank_left: float = 0.0
 var _bank_angle: float = NAN  ## NAN - подходящего выстрела с рикошетом нет
 var _bank_time: float = 0.0
+var _bank_ban_left: float = 0.0  ## пауза в выстрелах с рикошетом после серии промахов
 
 
 func setup(arena: Arena, target: Tank, bullets_root: Node2D) -> void:
@@ -76,6 +79,7 @@ func reset() -> void:
 	_bank_left = 0.0
 	_bank_angle = NAN
 	_bank_time = 0.0
+	_bank_ban_left = 0.0
 
 
 ## Команда на этот физический кадр: {"turn": -1..1, "throttle": -1..1, "fire": bool}
@@ -120,7 +124,10 @@ func think(tank: Tank, delta: float) -> Dictionary:
 		cmd.fire = _los_time >= reaction_time and err <= aim_tolerance and distance <= fire_range
 	else:
 		_bank_left -= delta
-		if _bank_left <= 0.0:
+		_bank_ban_left -= delta
+		if _bank_ban_left > 0.0:
+			_bank_angle = NAN
+		elif _bank_left <= 0.0:
 			_bank_left = BANK_INTERVAL
 			var found := _find_bank_angle(tank)
 			if is_nan(found) or is_nan(_bank_angle) or absf(wrapf(found - _bank_angle, -PI, PI)) > 0.1:
@@ -130,6 +137,11 @@ func think(tank: Tank, delta: float) -> Dictionary:
 			# выстрел с рикошетом: встаём, целимся и стреляем
 			_steer(tank, _bank_angle, cmd, 0.0)
 			_bank_time += delta
+			if _bank_time > BANK_MAX_AIM_TIME:  # выстрелы по этому углу не попадают - не зацикливаемся на нём
+				_bank_ban_left = BANK_BAN_TIME
+				_bank_angle = NAN
+				_bank_time = 0.0
+				return cmd
 			var bank_err := absf(wrapf(_bank_angle - tank.rotation, -PI, PI))
 			cmd.fire = _bank_time >= reaction_time and bank_err <= aim_tolerance * 0.6
 			return cmd
