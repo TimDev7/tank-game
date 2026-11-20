@@ -10,6 +10,7 @@ signal start_requested(vs_ai: bool)
 const MATCH_SCENE := "res://game/match/match.tscn"
 const JUICY := preload("res://template/ui/components/juicy_button_component.tscn")
 const BACKGROUND := preload("res://game/menu/menu_background.gd")
+const SETTINGS_PANEL := preload("res://game/menu/settings_panel.gd")
 const HULLS := {1: "tank_blue_hull", 2: "tank_red_hull"}  ## регионы единого атласа
 const TURRETS := {1: "tank_blue_turret", 2: "tank_red_turret"}
 const BLUE := Color(0.45, 0.7, 1.0)
@@ -23,11 +24,13 @@ const MENU_FONT_COLOR := Color(0.93, 0.95, 0.93)
 
 var play_ai_button: Button
 var play_pvp_button: Button
+var settings_button: Button
 
 var _starting := false
 var _header: Control
 var _buttons_box: Control
 var _hint: Label
+var _settings_panel: Control
 
 
 func _ready() -> void:
@@ -75,8 +78,8 @@ func _build() -> void:
 	_buttons_box.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
 	_buttons_box.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_buttons_box.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_buttons_box.offset_bottom = -92.0
-	_buttons_box.add_theme_constant_override("separation", 20)
+	_buttons_box.offset_bottom = -76.0
+	_buttons_box.add_theme_constant_override("separation", 14)
 	_buttons_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_buttons_box)
 	play_ai_button = _mode_button(tr("PLAY VS COMPUTER"), tr("Solo  -  30 levels, crates and ricochets"), BLUE, [1], "AI")
@@ -86,9 +89,17 @@ func _build() -> void:
 	play_pvp_button.pressed.connect(start.bind(false))
 	_buttons_box.add_child(play_pvp_button)
 
-	# фокус вверх/вниз по кругу
-	play_ai_button.focus_neighbor_top = play_pvp_button.get_path()
-	play_pvp_button.focus_neighbor_bottom = play_ai_button.get_path()
+	settings_button = _small_button(tr("SETTINGS"))
+	settings_button.pressed.connect(open_settings)
+	_buttons_box.add_child(settings_button)
+
+	# фокус вверх/вниз по кругу: AI -> 2 players -> Settings -> AI
+	play_ai_button.focus_neighbor_bottom = play_pvp_button.get_path()
+	play_pvp_button.focus_neighbor_top = play_ai_button.get_path()
+	play_pvp_button.focus_neighbor_bottom = settings_button.get_path()
+	settings_button.focus_neighbor_top = play_pvp_button.get_path()
+	settings_button.focus_neighbor_bottom = play_ai_button.get_path()
+	play_ai_button.focus_neighbor_top = settings_button.get_path()
 
 	# --- подсказка ---
 	_hint = _label(tr("Blue: WASD + Space   |   Red: Arrows + /   |   Esc - pause / levels"), 18, Color(0.82, 0.85, 0.82, 0.95))
@@ -105,13 +116,43 @@ func _play_intro() -> void:
 	_header.position.y = header_y - 40.0
 	play_ai_button.modulate.a = 0.0
 	play_pvp_button.modulate.a = 0.0
+	settings_button.modulate.a = 0.0
 	_hint.modulate.a = 0.0
 	var tween := create_tween().set_parallel(true)
 	tween.tween_property(_header, "modulate:a", 1.0, 0.5)
 	tween.tween_property(_header, "position:y", header_y, 0.6).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tween.tween_property(play_ai_button, "modulate:a", 1.0, 0.4).set_delay(0.35)
 	tween.tween_property(play_pvp_button, "modulate:a", 1.0, 0.4).set_delay(0.5)
+	tween.tween_property(settings_button, "modulate:a", 1.0, 0.4).set_delay(0.6)
 	tween.tween_property(_hint, "modulate:a", 1.0, 0.4).set_delay(0.7)
+
+
+## Окно настроек (музыка / звуковые эффекты). Одно окно за раз.
+func open_settings() -> void:
+	if _starting or (_settings_panel != null and is_instance_valid(_settings_panel)):
+		return
+	_settings_panel = SETTINGS_PANEL.new()
+	_settings_panel.closed.connect(func(): settings_button.grab_focus())
+	add_child(_settings_panel)
+
+
+## Небольшая кнопка без картинки (Settings).
+func _small_button(title: String) -> Button:
+	var button := Button.new()
+	button.text = title
+	button.custom_minimum_size = Vector2(300, 56)
+	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	button.focus_mode = Control.FOCUS_ALL
+	button.add_theme_font_size_override("font_size", 26)
+	button.add_theme_color_override("font_color", MENU_FONT_COLOR)
+	button.add_theme_color_override("font_hover_color", Color.WHITE)
+	button.add_theme_color_override("font_focus_color", Color.WHITE)
+	button.add_theme_stylebox_override("normal", _style(Color(0.08, 0.10, 0.09, 0.82), GOLD.darkened(0.45), 3, GOLD, 0))
+	button.add_theme_stylebox_override("hover", _style(Color(0.14, 0.18, 0.15, 0.92), GOLD, 3, GOLD, 0))
+	button.add_theme_stylebox_override("pressed", _style(Color(0.05, 0.07, 0.06, 0.95), GOLD, 3, GOLD, 0))
+	button.add_theme_stylebox_override("focus", _style(Color(0.14, 0.18, 0.15, 0.92), GOLD.lightened(0.5), 4, GOLD, 0))
+	button.add_child(JUICY.instantiate())
+	return button
 
 
 func _title_line(text: String, size: int, color: Color, shadow: Color) -> Control:
