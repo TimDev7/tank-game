@@ -39,6 +39,7 @@ var theme: int = 0
 
 var _spawns: Dictionary = {}  # int -> SpawnPoint
 var _decor: Node2D
+var _shadows: ShadowLayer
 var _crates: Array[Crate] = []
 
 
@@ -54,12 +55,21 @@ func load_level(index: int) -> void:
 	_apply_walls()
 	_apply_floor()
 	_spawn_decor()
+	get_shadow_layer().set_walls(Levels.cells(level_index), TILE, Levels.COLS, Levels.ROWS)
 	_spawn_crates()
 	level_changed.emit(level_index)
 
 
 func get_level_name() -> String:
 	return Levels.level_name(level_index)
+
+
+## Слой теней арены (создаётся при первом обращении; танки и ящики регистрируют в нём свои спрайты).
+func get_shadow_layer() -> ShadowLayer:
+	if _shadows == null:
+		_shadows = ShadowLayer.new()
+		add_child(_shadows)
+	return _shadows
 
 
 ## Живые ящики арены.
@@ -143,6 +153,7 @@ func _spawn_decor() -> void:
 	add_child(_decor)
 	var base := get_node_or_null("Floor")
 	move_child(_decor, base.get_index() + 1 if base else 0)  # над полом, под стенами и танками
+	move_child(get_shadow_layer(), _decor.get_index() + 1)  # тени - поверх декалей, под стенами и танками
 
 	var wall_cells := {}
 	for cell in Levels.cells(level_index):

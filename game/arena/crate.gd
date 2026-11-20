@@ -33,6 +33,9 @@ func _ready() -> void:
 	sprite.scale = Vector2.ONE * (SIZE / ART_SIZE)
 	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	add_child(sprite)
+	var arena := get_parent() as Arena
+	if arena:
+		arena.get_shadow_layer().track(sprite, ShadowLayer.CRATE_OFFSET)
 
 	_shape = CollisionShape2D.new()
 	var rect := RectangleShape2D.new()

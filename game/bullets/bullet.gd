@@ -81,4 +81,6 @@ func _draw() -> void:
 		draw_line(to_local(_trail[i]), to_local(_trail[i + 1]), Color(color, 0.45 * k), RADIUS * 1.6 * k)
 	draw_circle(Vector2.ZERO, RADIUS * 2.6, Color(color, 0.16))  # свечение
 	var region := "bullet_blue" if (shooter == null or shooter.player_index == 1) else "bullet_red"
+	# тень: пуля летит выше всего, поэтому её тень дальше всех и мельче
+	draw_texture_rect(GameAtlas.tex(region), Rect2(1.0, 5.0, 12, 12), false, Color(0.02, 0.02, 0.06, 0.32))
 	draw_texture_rect(GameAtlas.tex(region), Rect2(-8, -8, 16, 16), false)  # снаряд из единого атласа

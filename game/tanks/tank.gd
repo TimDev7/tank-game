@@ -54,6 +54,10 @@ func _ready() -> void:
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
 	_apply_body_scale()
 	_apply_skin()
+	var arena := get_parent() as Arena
+	if arena:
+		arena.get_shadow_layer().track(_hull, ShadowLayer.HULL_OFFSET)
+		arena.get_shadow_layer().track(_turret, ShadowLayer.TURRET_OFFSET)
 	var engine_stream := GameAudio.stream("engine")
 	if engine_stream:
 		_engine = AudioStreamPlayer.new()
