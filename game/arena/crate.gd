@@ -3,12 +3,11 @@ extends CharacterBody2D
 ## Ящик: танк двигает его, наезжая; упирается в стены, танки и другие ящики (цепочку ящиков можно толкать
 ## вместе); пуля разбивает ящик вдребезги, и он пропадает. Строится кодом (без .tscn).
 ##
-## Виды (спрайты в art/crates.png): 0 дерево, 1 металл, 2 армейский, 3 «опасность».
+## Виды (регион "crates" единого атласа): 0 дерево, 1 металл, 2 армейский, 3 «опасность».
 ## Физика только в _physics_process (одинаково на 60/144 Гц).
 
 const ART_SIZE := 36.0  ## размер ячейки в спрайт-листе
 const SIZE := 40.0  ## размер в игре = клетка арены = длина танка
-const SHEET := preload("res://game/arena/art/crates.png")
 const DEBRIS_COLORS := [
 	Color(0.69, 0.49, 0.28), Color(0.62, 0.68, 0.76), Color(0.42, 0.52, 0.30), Color(0.92, 0.72, 0.14),
 ]
@@ -30,10 +29,7 @@ func _ready() -> void:
 	add_to_group(&"crates")
 
 	var sprite := Sprite2D.new()
-	var atlas := AtlasTexture.new()
-	atlas.atlas = SHEET
-	atlas.region = Rect2(variant * ART_SIZE, 0, ART_SIZE, ART_SIZE)
-	sprite.texture = atlas
+	sprite.texture = GameAtlas.cell("crates", variant, Vector2(ART_SIZE, ART_SIZE))
 	sprite.scale = Vector2.ONE * (SIZE / ART_SIZE)
 	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	add_child(sprite)
@@ -69,6 +65,7 @@ func destroy() -> void:
 	if not alive:
 		return
 	alive = false
+	GameAudio.sfx("crate_break", 0.8, 0.1)
 	_shape.set_deferred("disabled", true)
 	_spawn_debris()
 	queue_free()
@@ -92,8 +89,10 @@ func _spawn_debris() -> void:
 	fx.initial_velocity_max = 200.0
 	fx.damping_min = 90.0
 	fx.damping_max = 140.0
-	fx.scale_amount_min = 2.5
-	fx.scale_amount_max = 5.5
+	fx.texture = GameAtlas.tex("fx_pixel")  # пиксельные обломки из единого атласа (4x4)
+	fx.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	fx.scale_amount_min = 0.7
+	fx.scale_amount_max = 1.6
 	fx.angular_velocity_min = -540.0
 	fx.angular_velocity_max = 540.0
 	fx.color = DEBRIS_COLORS[variant]

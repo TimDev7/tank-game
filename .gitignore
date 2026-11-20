@@ -18,3 +18,7 @@ mono_crash.*.json
 # Web/platform build output
 /Export/
 /export/
+
+# сырой арт - пересоздаётся tools/build_atlas.py
+tools/art_src/
+tools/__pycache__/

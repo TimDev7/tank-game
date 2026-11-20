@@ -14,7 +14,7 @@ import sys
 from PIL import Image, ImageDraw, ImageFilter
 
 S = 4  # суперсэмплинг
-OUT = os.path.join(os.path.dirname(__file__), "..", "game", "tanks", "art")
+OUT = os.path.join(os.path.dirname(__file__), "art_src")
 
 PALETTES = {
     "blue": {"base": (58, 110, 200), "light": (110, 165, 240), "dark": (26, 52, 112), "edge": (14, 28, 66)},

@@ -19,6 +19,8 @@ var _hint: Label
 var _level_label: Label
 var _pause_overlay: Control
 var _current_level: int = 0
+var _message_tween: Tween
+var _last_scores := Vector2i.ZERO
 
 
 func _ready() -> void:
@@ -30,11 +32,38 @@ func _ready() -> void:
 func set_scores(blue: int, red: int) -> void:
 	_blue_label.text = "%s  %d" % [tr("BLUE"), blue]
 	_red_label.text = "%d  %s" % [red, tr("RED")]
+	if blue > _last_scores.x:
+		_pop(_blue_label)
+	if red > _last_scores.y:
+		_pop(_red_label)
+	_last_scores = Vector2i(blue, red)
+
+
+func _pop(label: Label) -> void:
+	label.pivot_offset = label.size / 2.0
+	label.scale = Vector2(1.5, 1.5)
+	create_tween().tween_property(label, "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 func show_message(text: String) -> void:
+	if _message_tween:
+		_message_tween.kill()
+	_message.modulate = Color.WHITE
+	_message.scale = Vector2.ONE
 	_message.text = text
 	_message.visible = not text.is_empty()
+
+
+## Короткая надпись «FIGHT!»: выпрыгивает, держится и гаснет сама.
+func flash_message(text: String) -> void:
+	show_message(text)
+	_message.pivot_offset = _message.size / 2.0
+	_message.scale = Vector2(0.4, 0.4)
+	_message_tween = create_tween()
+	_message_tween.tween_property(_message, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_message_tween.tween_interval(0.35)
+	_message_tween.tween_property(_message, "modulate:a", 0.0, 0.3)
+	_message_tween.tween_callback(func(): _message.visible = false)
 
 
 func set_level(number: int, total: int, level_name: String) -> void:
@@ -63,6 +92,26 @@ func _build() -> void:
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
+
+	# виньетка: затемнение к краям экрана
+	var vignette := TextureRect.new()
+	var grad := Gradient.new()
+	grad.set_color(0, Color(0, 0, 0, 0))
+	grad.set_color(1, Color(0, 0, 0, 0.55))
+	grad.set_offset(0, 0.55)
+	var gtex := GradientTexture2D.new()
+	gtex.gradient = grad
+	gtex.fill = GradientTexture2D.FILL_RADIAL
+	gtex.fill_from = Vector2(0.5, 0.5)
+	gtex.fill_to = Vector2(1.0, 0.5)
+	gtex.width = 256
+	gtex.height = 144
+	vignette.texture = gtex
+	vignette.set_anchors_preset(Control.PRESET_FULL_RECT)
+	vignette.stretch_mode = TextureRect.STRETCH_SCALE
+	vignette.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(vignette)
 
 	# счёт сверху по центру
 	var box := HBoxContainer.new()

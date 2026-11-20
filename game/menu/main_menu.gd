@@ -10,14 +10,8 @@ signal start_requested(vs_ai: bool)
 const MATCH_SCENE := "res://game/match/match.tscn"
 const JUICY := preload("res://template/ui/components/juicy_button_component.tscn")
 const BACKGROUND := preload("res://game/menu/menu_background.gd")
-const HULLS := {
-	1: preload("res://game/tanks/art/tank_blue_hull.png"),
-	2: preload("res://game/tanks/art/tank_red_hull.png"),
-}
-const TURRETS := {
-	1: preload("res://game/tanks/art/tank_blue_turret.png"),
-	2: preload("res://game/tanks/art/tank_red_turret.png"),
-}
+const HULLS := {1: "tank_blue_hull", 2: "tank_red_hull"}  ## регионы единого атласа
+const TURRETS := {1: "tank_blue_turret", 2: "tank_red_turret"}
 const BLUE := Color(0.45, 0.7, 1.0)
 const RED := Color(1.0, 0.45, 0.4)
 const GOLD := Color(1.0, 0.78, 0.22)
@@ -38,6 +32,7 @@ var _hint: Label
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	GameAudio.music("music_menu", 0.5)
 	_build()
 	play_ai_button.grab_focus()
 	_play_intro()
@@ -193,7 +188,7 @@ func _tank_icon(players: Array, badge: String) -> Control:
 	for i in players.size():
 		var player: int = players[i]
 		var cx := 34.0 + i * 64.0
-		for pair in [[HULLS[player], Vector2(96, 64)], [TURRETS[player], Vector2(160, 64)]]:
+		for pair in [[GameAtlas.tex(HULLS[player]), Vector2(96, 64)], [GameAtlas.tex(TURRETS[player]), Vector2(160, 64)]]:
 			var rect := TextureRect.new()
 			rect.texture = pair[0]
 			rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE

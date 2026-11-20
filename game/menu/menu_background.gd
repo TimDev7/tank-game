@@ -3,18 +3,9 @@ extends Node2D
 ## которые по очереди стреляют, и пули, рикошетящие по экрану со светящимся следом.
 ## Только оформление (подключается через preload, без class_name). Рисуется целиком в _draw.
 
-const FLOOR := preload("res://game/arena/art/floor_3.png")
-const TILES := preload("res://game/arena/art/tiles.png")
-const CRATES := preload("res://game/arena/art/crates.png")
-const DECALS := preload("res://game/arena/art/decals.png")
-const HULLS := {
-	1: preload("res://game/tanks/art/tank_blue_hull.png"),
-	2: preload("res://game/tanks/art/tank_red_hull.png"),
-}
-const TURRETS := {
-	1: preload("res://game/tanks/art/tank_blue_turret.png"),
-	2: preload("res://game/tanks/art/tank_red_turret.png"),
-}
+const FLOOR_REGION := "floor_3"
+const HULLS := {1: "tank_blue_hull", 2: "tank_red_hull"}  ## регионы единого атласа
+const TURRETS := {1: "tank_blue_turret", 2: "tank_red_turret"}
 const SIZE := Vector2(1280, 720)
 const TILE := 40
 const STEEL_THEME := 3
@@ -58,7 +49,7 @@ func _process(delta: float) -> void:
 
 func _draw() -> void:
 	# пол + затемнение
-	draw_texture_rect(FLOOR, Rect2(Vector2.ZERO, SIZE), true)
+	draw_texture_rect(GameAtlas.standalone(FLOOR_REGION), Rect2(Vector2.ZERO, SIZE), true)
 	draw_rect(Rect2(Vector2.ZERO, SIZE), Color(0, 0, 0, 0.42))
 
 	# декали на полу (фиксированный узор)
@@ -68,7 +59,7 @@ func _draw() -> void:
 		var pos := Vector2(rng.randf_range(90, 1190), rng.randf_range(90, 630))
 		var kind := rng.randi_range(0, 5)
 		draw_set_transform(pos, rng.randf_range(0.0, TAU), Vector2.ONE * rng.randf_range(1.0, 1.7))
-		draw_texture_rect_region(DECALS, Rect2(-20, -20, 40, 40), Rect2(kind * 40, 0, 40, 40), Color(1, 1, 1, 0.5))
+		draw_texture_rect(GameAtlas.cell("decals", kind, Vector2(40, 40)), Rect2(-20, -20, 40, 40), false, Color(1, 1, 1, 0.5))
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 	# рамка из стальных тайлов
@@ -84,7 +75,7 @@ func _draw() -> void:
 			[Vector2(58, 590), 3], [Vector2(130, 590), 2], [Vector2(1150, 590), 0], [Vector2(1078, 590), 1]]:
 		var rect := Rect2(crate[0], Vector2(72, 72))
 		draw_rect(Rect2(rect.position + Vector2(5, 7), rect.size), Color(0, 0, 0, 0.35))  # тень
-		draw_texture_rect_region(CRATES, rect, Rect2(crate[1] * 36, 0, 36, 36))
+		draw_texture_rect(GameAtlas.cell("crates", crate[1], Vector2(36, 36)), rect, false)
 
 	# следы и пули
 	for shot in _shots:
@@ -106,7 +97,7 @@ func _draw() -> void:
 
 func _draw_wall_tile(cell: Vector2) -> void:
 	var variant := posmod(int(cell.x) * 7 + int(cell.y) * 13, 3)
-	draw_texture_rect_region(TILES, Rect2(cell * TILE, Vector2(TILE, TILE)), Rect2(STEEL_THEME * TILE, variant * TILE, TILE, TILE))
+	draw_texture_rect(GameAtlas.tex("tiles", Rect2(STEEL_THEME * TILE, variant * TILE, TILE, TILE)), Rect2(cell * TILE, Vector2(TILE, TILE)), false)
 
 
 func _make_tank(player: int, pos: Vector2, rot: float) -> Node2D:
@@ -114,7 +105,7 @@ func _make_tank(player: int, pos: Vector2, rot: float) -> Node2D:
 	holder.position = pos
 	holder.rotation = rot
 	holder.scale = Vector2.ONE * TANK_SCALE
-	for tex in [HULLS[player], TURRETS[player]]:
+	for tex in [GameAtlas.tex(HULLS[player]), GameAtlas.tex(TURRETS[player])]:
 		var sprite := Sprite2D.new()
 		sprite.texture = tex
 		sprite.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR  # танки гладкие, как в игре

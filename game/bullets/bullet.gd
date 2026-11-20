@@ -18,11 +18,15 @@ var direction: Vector2 = Vector2.RIGHT
 var lifetime: float = 6.0
 var bounces: int = 0
 
+const TRAIL_LENGTH := 9
+var _trail: PackedVector2Array = PackedVector2Array()  ## глобальные позиции за последние кадры
+
 
 func launch(from_tank: Tank, at: Vector2, dir: Vector2) -> void:
 	shooter = from_tank
 	global_position = at
 	direction = dir.normalized()
+	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	queue_redraw()
 
 
@@ -31,6 +35,10 @@ func _physics_process(delta: float) -> void:
 	if lifetime <= 0.0:
 		queue_free()
 		return
+	_trail.append(global_position)
+	if _trail.size() > TRAIL_LENGTH:
+		_trail.remove_at(0)
+	queue_redraw()
 
 	var remaining := SPEED * delta
 	var space := get_world_2d().direct_space_state
@@ -55,6 +63,11 @@ func _physics_process(delta: float) -> void:
 		global_position = hit.position + hit.normal * 0.5
 		direction = direction.bounce(hit.normal).normalized()
 		bounces += 1
+		GameAudio.sfx("bounce", 0.5, 0.12)
+		var fx_root := Fx.root(self)
+		if fx_root:
+			Fx.spark(fx_root, hit.position, hit.normal)
+		_trail.clear()
 		remaining = maxf(0.0, remaining - travelled)
 		if remaining <= 0.01:
 			return
@@ -62,6 +75,10 @@ func _physics_process(delta: float) -> void:
 
 func _draw() -> void:
 	var color: Color = COLORS.get(shooter.player_index if shooter else 1, Color.WHITE)
-	draw_circle(Vector2.ZERO, RADIUS + 1.5, Color(0.05, 0.05, 0.07, 0.9))
-	draw_circle(Vector2.ZERO, RADIUS, color)
-	draw_circle(Vector2(-1.5, -1.5), RADIUS * 0.4, Color(1, 1, 1, 0.75))
+	# хвост: затухающая линия по последним позициям
+	for i in range(_trail.size() - 1):
+		var k := float(i + 1) / _trail.size()
+		draw_line(to_local(_trail[i]), to_local(_trail[i + 1]), Color(color, 0.45 * k), RADIUS * 1.6 * k)
+	draw_circle(Vector2.ZERO, RADIUS * 2.6, Color(color, 0.16))  # свечение
+	var region := "bullet_blue" if (shooter == null or shooter.player_index == 1) else "bullet_red"
+	draw_texture_rect(GameAtlas.tex(region), Rect2(-8, -8, 16, 16), false)  # снаряд из единого атласа

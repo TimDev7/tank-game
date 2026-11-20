@@ -17,18 +17,6 @@ extends Node2D
 signal level_changed(index: int)
 
 const TILE := 40
-const TILE_ATLAS := preload("res://game/arena/art/tiles.png")
-const DECAL_ATLAS := preload("res://game/arena/art/decals.png")
-const FLOOR_TEXTURES := [
-	preload("res://game/arena/art/floor_0.png"),
-	preload("res://game/arena/art/floor_1.png"),
-	preload("res://game/arena/art/floor_2.png"),
-	preload("res://game/arena/art/floor_3.png"),
-	preload("res://game/arena/art/floor_4.png"),
-	preload("res://game/arena/art/floor_5.png"),
-	preload("res://game/arena/art/floor_6.png"),
-	preload("res://game/arena/art/floor_7.png"),
-]
 const FLOOR_COLORS := [
 	Color(0.15, 0.17, 0.16), Color(0.46, 0.38, 0.27), Color(0.19, 0.31, 0.18), Color(0.18, 0.21, 0.27),
 	Color(0.30, 0.23, 0.17), Color(0.39, 0.50, 0.61), Color(0.15, 0.12, 0.13), Color(0.08, 0.07, 0.14),
@@ -143,7 +131,7 @@ func _apply_floor() -> void:
 		tex.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		tex.size = base.size
 		base.add_child(tex)
-	tex.texture = FLOOR_TEXTURES[theme]
+	tex.texture = GameAtlas.standalone("floor_%d" % theme)
 
 
 func _spawn_decor() -> void:
@@ -171,10 +159,8 @@ func _spawn_decor() -> void:
 		if wall_cells.has(cell) or near_spawn:
 			continue
 		var sprite := Sprite2D.new()
-		var atlas := AtlasTexture.new()
-		atlas.atlas = DECAL_ATLAS
-		atlas.region = Rect2(kinds[rng.randi() % kinds.size()] * TILE, 0, TILE, TILE)
-		sprite.texture = atlas
+		sprite.texture = GameAtlas.cell("decals", kinds[rng.randi() % kinds.size()], Vector2(TILE, TILE))
+		sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		sprite.position = Vector2(cell) * TILE + Vector2(TILE, TILE) / 2.0 + Vector2(rng.randf_range(-10, 10), rng.randf_range(-10, 10))
 		sprite.rotation = rng.randf_range(0.0, TAU)
 		sprite.scale = Vector2.ONE * rng.randf_range(0.85, 1.4)
@@ -204,7 +190,7 @@ static func _get_tile_set() -> TileSet:
 	return _tile_set_cache
 
 
-## TileSet из art/tiles.png: столбец = тема, строка = вариант; у каждого тайла квадратная коллизия (слой wall).
+## TileSet из региона "tiles" единого атласа (game/art/atlas.png): столбец = тема, строка = вариант; у каждого тайла квадратная коллизия (слой wall).
 static func _build_tile_set() -> TileSet:
 	var ts := TileSet.new()
 	ts.tile_size = Vector2i(TILE, TILE)
@@ -212,7 +198,7 @@ static func _build_tile_set() -> TileSet:
 	ts.set_physics_layer_collision_layer(0, 1 << (PhysicsLayers.WALL - 1))
 	ts.set_physics_layer_collision_mask(0, 0)
 	var atlas := TileSetAtlasSource.new()
-	atlas.texture = TILE_ATLAS
+	atlas.texture = GameAtlas.ATLAS  # тайлы стен - регион "tiles" в левом верхнем углу атласа (0, 0)
 	atlas.texture_region_size = Vector2i(TILE, TILE)
 	for x in THEME_COUNT:
 		for y in 3:

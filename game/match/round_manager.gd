@@ -39,10 +39,19 @@ var _fixed_level: bool = false  ## уровень выбран в меню — �
 var _round_id: int = 0
 var _resolve_queued: bool = false
 var _paused: bool = false
+var _trauma: float = 0.0  ## 0..1, затухает; тряска экрана = trauma²
+var _shake_root: Node2D
+var _fx_root: Node2D  ## частицы/кольца/копоть; не в Bullets (его дети считаются пулями)
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS  # ловим клавишу паузы, пока дерево на паузе
+	_shake_root = get_parent() as Node2D
+	GameAudio.music("music_battle", 0.45)
+	_fx_root = Node2D.new()
+	_fx_root.name = "Fx"
+	_fx_root.add_to_group(&"fx_root")
+	_shake_root.add_child.call_deferred(_fx_root)  # родитель ещё строит детей
 	for player in range(1, TankInput.PLAYER_COUNT + 1):
 		var tank: Tank = TANK_SCENE.instantiate()
 		tank.player_index = player
@@ -64,6 +73,21 @@ func _ready() -> void:
 	start_match.call_deferred()
 
 
+func _process(delta: float) -> void:
+	if _shake_root == null:
+		return
+	if _trauma > 0.0 and not _paused:
+		_trauma = maxf(0.0, _trauma - delta * 1.8)
+		var amp := _trauma * _trauma * 9.0
+		_shake_root.position = Vector2(randf_range(-amp, amp), randf_range(-amp, amp))
+	else:
+		_shake_root.position = Vector2.ZERO
+
+
+func add_shake(amount: float) -> void:
+	_trauma = minf(1.0, _trauma + amount)
+
+
 func start_match() -> void:
 	scores = {1: 0, 2: 0}
 	_emit_scores()
@@ -78,6 +102,8 @@ func start_round(advance: bool = false) -> void:
 	_resolve_queued = false
 	for bullet in bullets_root.get_children():
 		bullet.queue_free()
+	for effect in _fx_root.get_children():
+		effect.queue_free()
 	if advance:
 		level = (level + 1) % Levels.count()
 	arena.load_level(level)
@@ -94,6 +120,8 @@ func start_round(advance: bool = false) -> void:
 	state = State.PLAYING
 	if hud:
 		hud.show_message("")
+		hud.flash_message(tr("FIGHT!"))
+	GameAudio.sfx("round_start", 0.7, 0.0)
 	_sdk_gameplay(true)
 	round_started.emit()
 
@@ -139,6 +167,7 @@ func go_to_menu() -> void:
 
 
 func _set_paused(on: bool) -> void:
+	GameAudio.sfx("pause_on" if on else "pause_off", 0.7, 0.0)
 	_apply_pause(on)
 	_sdk_gameplay(not on)
 
@@ -178,9 +207,15 @@ func _on_tank_fired(tank: Tank, muzzle_position: Vector2, direction: Vector2) ->
 	var bullet := Bullet.new()
 	bullets_root.add_child(bullet)
 	bullet.launch(tank, muzzle_position, direction)
+	GameAudio.sfx("shot", 0.7, 0.08)
+	Fx.muzzle_flash(_fx_root, muzzle_position, direction, Bullet.COLORS.get(tank.player_index, Color.WHITE))
+	add_shake(0.12)
 
 
-func _on_tank_died(_tank: Tank) -> void:
+func _on_tank_died(tank: Tank) -> void:
+	GameAudio.sfx("explosion", 1.0, 0.06)
+	Fx.explosion(_fx_root, tank.global_position, Bullet.COLORS.get(tank.player_index, Color.WHITE))
+	add_shake(0.65)
 	if state != State.PLAYING or _resolve_queued:
 		return
 	# Откладываем до конца кадра: двойное попадание в один кадр = ничья.
@@ -208,9 +243,11 @@ func _resolve_round() -> void:
 		if hud:
 			hud.show_message(tr("%s wins the match!") % tr(PLAYER_NAMES[winner]) + "\n" + tr("R - new match   |   M - menu"))
 		match_ended.emit(winner)
+		GameAudio.sfx("match_win", 0.8, 0.0)
 		return
 
 	state = State.ROUND_OVER
+	GameAudio.sfx("round_win" if winner != 0 else "round_draw", 0.7, 0.0)
 	if hud:
 		hud.show_message(tr("%s scores!") % tr(PLAYER_NAMES[winner]) if winner != 0 else tr("Draw!"))
 	var id := _round_id

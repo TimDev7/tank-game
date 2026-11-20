@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dg5lohswgbaqc"
-path="res://.godot/imported/tank_red_turret.png-3a95ecc4526072ed60a3721621a58dc4.ctex"
+uid="uid://cwnaoy3rcnqeo"
+path="res://.godot/imported/atlas.png-ec3e6794a092779c1a6637acbb5a0df0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://game/tanks/art/tank_red_turret.png"
-dest_files=["res://.godot/imported/tank_red_turret.png-3a95ecc4526072ed60a3721621a58dc4.ctex"]
+source_file="res://game/art/atlas.png"
+dest_files=["res://.godot/imported/atlas.png-ec3e6794a092779c1a6637acbb5a0df0.ctex"]
 
 [params]
 

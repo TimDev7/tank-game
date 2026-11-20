@@ -15,7 +15,7 @@ import sys
 
 from PIL import Image, ImageDraw, ImageFilter
 
-OUT = os.path.join(os.path.dirname(__file__), "..", "game", "arena", "art")
+OUT = os.path.join(os.path.dirname(__file__), "art_src")  # сырой арт; в игру попадает только через build_atlas.py
 T = 40
 F = 80  # размер бесшовного пола
 C = 36  # размер ящика
