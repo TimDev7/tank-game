@@ -19,6 +19,13 @@ const TANK_SCENE := preload("res://game/tanks/tank.tscn")
 const MENU_SCENE := "res://game/menu/main_menu.tscn"
 const WINS_TO_MATCH := 5
 const ROUND_END_DELAY := 1.8
+## Межуровневая реклама (midgame): не чаще раза в 3 минуты. Отсчёт идёт от запуска игры (первая - не раньше
+## чем через 3 минуты игры) и от прошлого показа; платформа дополнительно ограничивает частоту сама (adCooldown).
+const AD_MIN_INTERVAL_MSEC := 3 * 60 * 1000
+
+## Когда последний раз запрашивали рекламу (Time.get_ticks_msec()). static - переживает перезагрузку сцены матча
+## и возврат в меню, иначе выход в меню и новый матч обнуляли бы ограничение.
+static var _last_ad_msec: int = 0
 const MAX_BULLETS_PER_TANK := 5
 const PLAYER_NAMES := {1: "Blue", 2: "Red"}
 
@@ -39,6 +46,7 @@ var _fixed_level: bool = false  ## уровень выбран в меню — �
 var _round_id: int = 0
 var _resolve_queued: bool = false
 var _paused: bool = false
+var _ad_active: bool = false  ## реклама на экране: ввод матча игнорируется
 var _trauma: float = 0.0  ## 0..1, затухает; тряска экрана = trauma²
 var _shake_root: Node2D
 var _fx_root: Node2D  ## частицы/кольца/копоть; не в Bullets (его дети считаются пулями)
@@ -127,6 +135,8 @@ func start_round(advance: bool = false) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _ad_active:
+		return
 	if event.is_action_pressed("pause") and not event.is_echo():
 		if state == State.PLAYING or _paused:
 			_set_paused(not _paused)
@@ -253,7 +263,30 @@ func _resolve_round() -> void:
 	var id := _round_id
 	await get_tree().create_timer(ROUND_END_DELAY).timeout
 	if id == _round_id and state == State.ROUND_OVER:  # не перезапускали вручную за это время
-		start_round(not _fixed_level)
+		if _fixed_level:
+			start_round()  # тот же уровень (выбран в меню паузы) - это не переход между уровнями, рекламы нет
+		else:
+			_next_level_with_ad(id)
+
+
+## Реклама подходит ли по времени: с прошлого запроса (или запуска игры) прошло >= AD_MIN_INTERVAL_MSEC.
+static func ad_due(now_msec: int) -> bool:
+	return now_msec - _last_ad_msec >= AD_MIN_INTERVAL_MSEC
+
+
+## Переход на следующий уровень. Если пришло время рекламы - показываем её между уровнями (игра на паузе,
+## звук приглушён внутри SDK), и только после её окончания/ошибки загружаем уровень. adError игру не ломает:
+## SDK в любом случае вызывает колбэк завершения.
+func _next_level_with_ad(round_id: int) -> void:
+	if get_node_or_null("/root/Bridge") == null or not ad_due(Time.get_ticks_msec()):
+		start_round(true)
+		return
+	_last_ad_msec = Time.get_ticks_msec()
+	_ad_active = true
+	SDK.show_interstitial(func():
+		_ad_active = false
+		if round_id == _round_id and state == State.ROUND_OVER:
+			start_round(true))
 
 
 func _apply_hint() -> void:
